@@ -65,7 +65,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.webkit:webkit:1.7.0'
-    implementation 'org.java-websocket:Java-WebSocket:1.5.4'
 
     testImplementation 'junit:junit:4.13.2'
 
