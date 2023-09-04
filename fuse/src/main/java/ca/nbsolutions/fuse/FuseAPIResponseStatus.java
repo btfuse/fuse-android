@@ -18,6 +18,17 @@ limitations under the License.
 package ca.nbsolutions.fuse;
 
 public enum FuseAPIResponseStatus {
-    OK,
-    ERROR
+    OK(200),
+    ERROR(400),
+    INTERNAL(500);
+
+    private final int $value;
+
+    private FuseAPIResponseStatus(int value) {
+        $value = value;
+    }
+
+    public int getValue() {
+        return $value;
+    }
 }

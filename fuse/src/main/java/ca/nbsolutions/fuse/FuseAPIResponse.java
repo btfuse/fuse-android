@@ -48,7 +48,7 @@ public class FuseAPIResponse {
         }
     }
 
-    private FuseAPIResponseStatus $status;
+    private int $status;
     private Socket $client;
     private boolean $hasSentHeaders;
 
@@ -58,19 +58,23 @@ public class FuseAPIResponse {
     public FuseAPIResponse(Socket client) {
         $hasSentHeaders = false;
         $client = client;
-        $status = FuseAPIResponseStatus.OK;
+        $status = FuseAPIResponseStatus.OK.getValue();
         $contentType = "application/octet-stream";
         $contentLength = 0;
     }
 
-    public FuseAPIResponseStatus getStatus() {
+    public int getStatus() {
         return $status;
     }
 
 
     // Header APIs
-    public void setStatus(FuseAPIResponseStatus status) {
+    public void setStatus(int status) {
         $status = status;
+    }
+
+    public void setStatus(FuseAPIResponseStatus status) {
+        setStatus(status.getValue());
     }
 
     public void setContentType(String type) {
@@ -81,22 +85,30 @@ public class FuseAPIResponse {
         $contentLength = size;
     }
 
-    public void finishHeaders() throws IOException {
-        int status = 200;
-        switch ($status) {
-            case OK:
-                status = 200;
-                break;
-            case ERROR:
-                status = 400;
-                break;
-        }
+    public void sendHeaders(int status, String contentType, long contentLength) throws IOException {
+        setStatus(status);
+        setContentType(contentType);
+        setContentLength(contentLength);
+        didFinishHeaders();
+    }
 
+    public void sendHeaders(FuseAPIResponseStatus status, String contentType, long contentLength) throws IOException {
+        sendHeaders(status.getValue(), contentType, contentLength);
+    }
+
+    public void didInternalError() throws IOException {
+        byte[] data = "Internal Error. See native logs for more details.".getBytes();
+        sendHeaders(FuseAPIResponseStatus.INTERNAL, "text/plain", data.length);
+        pushData(data);
+        didFinish();
+    }
+
+    public void didFinishHeaders() throws IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("HTTP/1.1 ")
-                .append(Integer.toString(status))
+                .append(Integer.toString($status))
                 .append(" ")
-                .append(StatusCodes.getStatusText(status))
+                .append(StatusCodes.getStatusText($status))
                 .append("\r\n")
                 .append("Access-Control-Allow-Origin: https://localhost\r\n")
                 .append("Access-Control-Allow-Headers: X-Fuse-Secret\r\n")
@@ -119,7 +131,7 @@ public class FuseAPIResponse {
         $client.getOutputStream().write(data);
     }
 
-    public void finish() throws IOException {
+    public void didFinish() throws IOException {
         $client.getOutputStream().flush();
         $client.close();
     }

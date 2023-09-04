@@ -20,7 +20,6 @@ package ca.nbsolutions.fuse;
 import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Base64;
 import android.util.Log;
 import android.content.Context;
 import android.webkit.JavascriptInterface;
@@ -31,16 +30,10 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.HashMap;
-import org.json.JSONException;
-import org.json.JSONObject;
-//import fi.iki.elonen.NanoHTTPD;
+import ca.nbsolutions.fuse.plugins.FuseRuntime;
 
 public class FuseContext {
     private static final String TAG = "FuseContext";
@@ -99,6 +92,8 @@ public class FuseContext {
         }
 
         Log.i(TAG, "API Server Port: " + $apiServer.getPort());
+
+        registerPlugin(new FuseRuntime(this));
 
         $webview.loadUrl("https://localhost/assets/index.html");
     }

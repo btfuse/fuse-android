@@ -37,9 +37,9 @@ public class FuseAPIRouter {
             byte[] content = new FuseError("FuseAPIRouter", 1, "Malformed route").serialize().getBytes();
             response.setContentLength(content.length);
             response.setContentType("application/json");
-            response.finishHeaders();
+            response.didFinishHeaders();
             response.pushData(content);
-            response.finish();
+            response.didFinish();
             return;
         }
 
@@ -50,9 +50,9 @@ public class FuseAPIRouter {
             byte[] content = new FuseError("FuseAPIRouter", 1, "Unknown plugin: " + pluginID).serialize().getBytes();
             response.setContentLength(content.length);
             response.setContentType("application/json");
-            response.finishHeaders();
+            response.didFinishHeaders();
             response.pushData(content);
-            response.finish();
+            response.didFinish();
             return;
         }
 

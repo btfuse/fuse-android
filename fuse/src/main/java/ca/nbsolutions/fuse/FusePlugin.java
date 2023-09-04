@@ -18,6 +18,10 @@ limitations under the License.
 package ca.nbsolutions.fuse;
 
 import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
@@ -32,7 +36,7 @@ public abstract class FusePlugin {
             this.plugin = plugin;
         }
 
-        public abstract void execute(FuseAPIPacket packet, FuseAPIResponse response) throws IOException;
+        public abstract void execute(FuseAPIPacket packet, FuseAPIResponse response) throws IOException, JSONException;
     }
 
     private final FuseContext $context;
@@ -64,18 +68,53 @@ public abstract class FusePlugin {
             response.setStatus(FuseAPIResponseStatus.ERROR);
             response.setContentType("application/json");
             response.setContentLength(content.length);
-            response.finishHeaders();
+            response.didFinishHeaders();
             response.pushData(content);
-            response.finish();
+            response.didFinish();
             return;
         }
 
         try {
             handler.execute(packet, response);
         }
+        catch (JSONException ex) {
+            Log.e(TAG, "JSON Exception", ex);
+            response.kill();
+        }
         catch (IOException ex) {
             Log.e(TAG, "IO Error", ex);
             response.kill();
         }
+    }
+
+    public void send(FuseAPIResponse response, byte[] data, String contentType) throws IOException {
+        response.sendHeaders(FuseAPIResponseStatus.OK, contentType, data.length);
+        response.pushData(data);
+        response.didFinish();
+    }
+
+    public void send(FuseAPIResponse response, byte[] data) throws IOException {
+        send(response, data, "application/octet-stream");
+    }
+
+    public void send(FuseAPIResponse response, JSONObject json) throws IOException {
+        byte[] data = json.toString().getBytes();
+        response.sendHeaders(FuseAPIResponseStatus.OK, "application/json", data.length);
+        response.pushData(data);
+        response.didFinish();
+    }
+
+    public void send(FuseAPIResponse response, String stringData) throws IOException {
+        byte[] data = stringData.getBytes();
+        response.sendHeaders(FuseAPIResponseStatus.OK, "text/plain", data.length);
+        response.pushData(data);
+        response.didFinish();
+    }
+
+    public void send(FuseAPIResponse response, FuseError error) throws IOException {
+        byte[] data = error.serialize().getBytes();
+        response.sendHeaders(FuseAPIResponseStatus.ERROR, "application/json", data.length);
+        response.pushData(data);
+        response.didFinish();
     }
 }

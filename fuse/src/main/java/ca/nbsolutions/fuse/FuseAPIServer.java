@@ -200,8 +200,8 @@ public class FuseAPIServer {
             res.setStatus(FuseAPIResponseStatus.OK);
             res.setContentType("text/plain");
             res.setContentLength(0);
-            res.finishHeaders();
-            res.finish();
+            res.didFinishHeaders();
+            res.didFinish();
             return;
         }
 
