@@ -43,9 +43,7 @@ git push
 git tag -a $VERSION -m "Android Release: $VERSION"
 git push --tags
 
-cd android
 ./gradlew publishReleasePublicationToMavenRepository
-cd ..
 
 gh release create $VERSION \
     ./fuse/build/outputs/aar/fuse-debug.aar \
