@@ -17,7 +17,9 @@ limitations under the License.
 
 package ca.nbsolutions.fuse;
 
+import androidx.annotation.NonNull;
 import android.annotation.SuppressLint;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -34,14 +36,17 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
 import ca.nbsolutions.fuse.plugins.FuseRuntime;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FuseContext {
     private static final String TAG = "FuseContext";
 
     private final Context $context;
 
-    private final WebView $webview;
+    private WebView $webview;
 
+    /*package private*/ final ReadWriteLock $pluginMapLock;
     private final Map<String, FusePlugin> $pluginMap;
 
     private final FuseAPIRouter $apiRouter;
@@ -53,20 +58,30 @@ public class FuseContext {
 
     private final FuseAPIServer $apiServer;
 
-    @SuppressLint("SetJavaScriptEnabled")
     public FuseContext(Context context) {
         $context = context;
-
         $mainThread = new Handler(Looper.getMainLooper());
-
+        $pluginMapLock = new ReentrantReadWriteLock();
         $pluginMap = new HashMap<String, FusePlugin>();
-
-        $webview = new WebView($context);
-
         $apiRouter = new FuseAPIRouter(this);
 
+        try {
+            $apiServer = new FuseAPIServer(this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Log.i(TAG, "API Server Port: " + $apiServer.getPort());
+
+        registerPlugin(new FuseRuntime(this));
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    public void onCreate(Bundle bundle) {
+        $webview = new WebView($context);
+
         final WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
-                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(context))
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler($context))
                 .setHttpAllowed(false)
                 .setDomain(HOST)
                 .build();
@@ -84,18 +99,63 @@ public class FuseContext {
         settings.setJavaScriptEnabled(true);
         $webview.setWebChromeClient(new WebChromeClient());
         $webview.addJavascriptInterface(this, "NBSNative");
-
-        try {
-            $apiServer = new FuseAPIServer(this);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        Log.i(TAG, "API Server Port: " + $apiServer.getPort());
-
-        registerPlugin(new FuseRuntime(this));
-
         $webview.loadUrl("https://localhost/assets/index.html");
+    }
+
+    public void onLowMemory() {
+        $pluginMapLock.readLock().lock();
+        for (FusePlugin plugin : $pluginMap.values()) {
+            plugin.onLowMemory();
+        }
+        $pluginMapLock.readLock().unlock();
+    }
+
+    public void onPause() {
+        $pluginMapLock.readLock().lock();
+        for (FusePlugin plugin : $pluginMap.values()) {
+            plugin.onPause();
+        }
+        $pluginMapLock.readLock().unlock();
+    }
+
+    public void onResume() {
+        $pluginMapLock.readLock().lock();
+        for (FusePlugin plugin : $pluginMap.values()) {
+            plugin.onResume();
+        }
+        $pluginMapLock.readLock().unlock();
+    }
+
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        $pluginMapLock.readLock().lock();
+        for (FusePlugin plugin : $pluginMap.values()) {
+            plugin.onSaveInstanceState(outState);
+        }
+        $pluginMapLock.readLock().unlock();
+    }
+
+    public void onStart() {
+        $pluginMapLock.readLock().lock();
+        for (FusePlugin plugin : $pluginMap.values()) {
+            plugin.onStart();
+        }
+        $pluginMapLock.readLock().unlock();
+    }
+
+    public void onStop() {
+        $pluginMapLock.readLock().lock();
+        for (FusePlugin plugin : $pluginMap.values()) {
+            plugin.onStop();
+        }
+        $pluginMapLock.readLock().unlock();
+    }
+
+    public void onDestroy() {
+        $pluginMapLock.readLock().lock();
+        for (FusePlugin plugin : $pluginMap.values()) {
+            plugin.onDestroy();
+        }
+        $pluginMapLock.readLock().unlock();
     }
 
     public WebView getWebview() {
@@ -107,6 +167,12 @@ public class FuseContext {
     }
 
     public void registerPlugin(FusePlugin plugin) {
+        $pluginMapLock.writeLock().lock();
+        $registerPlugin(plugin);
+        $pluginMapLock.writeLock().unlock();
+    }
+
+    /*package private*/ void $registerPlugin(FusePlugin plugin) {
         if ($pluginMap.containsKey(plugin.getID())) {
             Log.w(TAG, "Plugin \"" + plugin.getID() + "\" is already registered.");
             return;
@@ -134,81 +200,14 @@ public class FuseContext {
     }
 
     public void execCallback(String callbackID, String payload) {
-        $mainThread.post(new Runnable() {
-            @Override
-            public void run() {
-                $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(%s,%s);", callbackID, payload), null);
-            }
+        $mainThread.post(() -> {
+            $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(%s,%s);", callbackID, payload), null);
         });
     }
 
-//    @JavascriptInterface
-//    public void __apiHandler(String packetString) throws JSONException  {
-//        // Unlike iOS, JS interfaces can respond back directly so this method will block the JS
-//        // since it will be waiting for that return. While this is invoked on a background thread
-//        // already, we should move off the thread to let the JS return as quickly as possible.
-//
-//        JSONObject jpacket = new JSONObject(packetString);
-//        String callbackID = jpacket.optString("callbackID");
-//        String route = jpacket.getString("route");
-//        byte[] data;
-//        if (jpacket.has("contentType")) {
-//            FuseAPIContentType contentType = FuseAPIContentType.values()[jpacket.getInt("contentType")];
-//            String body = jpacket.getString("body");
-//
-//            switch (contentType) {
-//                case BINARY:
-//                    data = Base64.decode(body, Base64.DEFAULT);
-//                    break;
-//                case STRING:
-//                case JSON:
-//                    data = body.getBytes();
-//                    break;
-//                default:
-//                    Log.w(TAG, "Unknown content type");
-//                    data = new byte[0];
-//                    break;
-//            }
-//        }
-//        else {
-//            data = new byte[0];
-//        }
-//
-//        FuseAPIPacket packet = new FuseAPIPacket(route, data);
-//
-//        FuseAPIResponse response = $apiRouter.execute(packet);
-//        FuseAPIResponseStatus status = response.getStatus();
-//
-//        JSONObject out = new JSONObject();
-//        out.put("callbackID", callbackID);
-//
-//        int intStatus = 0;
-//        switch (status) {
-//            case OK:
-//                intStatus = 200;
-//                break;
-//            case ERROR:
-//                intStatus = 400;
-//                break;
-//        }
-//
-//        out.put("status", intStatus);
-//
-//        byte[] payload = response.getData();
-//        if (payload.length > 0) {
-//            out.put("payload", Base64.encodeToString(response.getData(), Base64.NO_WRAP));
-//        }
-//
-//        StringBuilder sb = new StringBuilder();
-//        sb.append("window.__nbsfuse_doCallback(");
-//        sb.append(out.toString());
-//        sb.append(");");
-//
-//        $mainThread.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                $webview.evaluateJavascript(sb.toString(), null);
-//            }
-//        });
-//    }
+    public void execCallback(String callbackID) {
+        $mainThread.post(() -> {
+            $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(%s);", callbackID), null);
+        });
+    }
 }

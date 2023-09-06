@@ -19,7 +19,7 @@ public class FuseAPIServer {
     public static final String TAG = "FuseAPIServer";
 
     private final ServerSocket $httpServer;
-    private FuseContext $context;
+    private final FuseContext $context;
 
     String $secret;
 

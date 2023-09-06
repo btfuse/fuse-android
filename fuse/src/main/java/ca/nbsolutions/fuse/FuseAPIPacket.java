@@ -17,7 +17,12 @@ limitations under the License.
 
 package ca.nbsolutions.fuse;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public class FuseAPIPacket {
     private final String $route;
@@ -32,6 +37,16 @@ public class FuseAPIPacket {
 
     public long getContentLength() {
         return $contentLength;
+    }
+
+    public String readAsString() throws IOException  {
+        byte[] buffer = new byte[(int)$contentLength];
+        $inputStream.read(buffer);
+        return new String(buffer, StandardCharsets.UTF_8);
+    }
+
+    public JSONObject readAsJSON() throws IOException, JSONException {
+        return new JSONObject(readAsString());
     }
 
     public String getRoute() {

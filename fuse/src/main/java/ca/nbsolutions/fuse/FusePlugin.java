@@ -17,7 +17,10 @@ limitations under the License.
 
 package ca.nbsolutions.fuse;
 
+import android.os.Bundle;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -116,5 +119,38 @@ public abstract class FusePlugin {
         response.sendHeaders(FuseAPIResponseStatus.ERROR, "application/json", data.length);
         response.pushData(data);
         response.didFinish();
+    }
+
+    public void send(FuseAPIResponse response) throws IOException {
+        response.sendHeaders(204, "text/plain", 0);
+        response.didFinish();
+    }
+
+    public void onLowMemory() {
+
+    }
+
+    public void onPause() {
+
+    }
+
+    public void onResume() {
+
+    }
+
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+
+    }
+
+    public void onStart() {
+
+    }
+
+    public void onStop() {
+
+    }
+
+    public void onDestroy() {
+
     }
 }
