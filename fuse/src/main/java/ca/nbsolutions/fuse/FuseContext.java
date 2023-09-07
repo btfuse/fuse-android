@@ -97,6 +97,7 @@ public class FuseContext {
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
         settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
         $webview.setWebChromeClient(new WebChromeClient());
         $webview.addJavascriptInterface(this, "NBSNative");
         $webview.loadUrl("https://localhost/assets/index.html");
