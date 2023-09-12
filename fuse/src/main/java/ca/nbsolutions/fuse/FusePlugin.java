@@ -90,42 +90,6 @@ public abstract class FusePlugin {
         }
     }
 
-    public void send(FuseAPIResponse response, byte[] data, String contentType) throws IOException {
-        response.sendHeaders(FuseAPIResponseStatus.OK, contentType, data.length);
-        response.pushData(data);
-        response.didFinish();
-    }
-
-    public void send(FuseAPIResponse response, byte[] data) throws IOException {
-        send(response, data, "application/octet-stream");
-    }
-
-    public void send(FuseAPIResponse response, JSONObject json) throws IOException {
-        byte[] data = json.toString().getBytes();
-        response.sendHeaders(FuseAPIResponseStatus.OK, "application/json", data.length);
-        response.pushData(data);
-        response.didFinish();
-    }
-
-    public void send(FuseAPIResponse response, String stringData) throws IOException {
-        byte[] data = stringData.getBytes();
-        response.sendHeaders(FuseAPIResponseStatus.OK, "text/plain", data.length);
-        response.pushData(data);
-        response.didFinish();
-    }
-
-    public void send(FuseAPIResponse response, FuseError error) throws IOException {
-        byte[] data = error.serialize().getBytes();
-        response.sendHeaders(FuseAPIResponseStatus.ERROR, "application/json", data.length);
-        response.pushData(data);
-        response.didFinish();
-    }
-
-    public void send(FuseAPIResponse response) throws IOException {
-        response.sendHeaders(204, "text/plain", 0);
-        response.didFinish();
-    }
-
     public void onLowMemory() {
 
     }

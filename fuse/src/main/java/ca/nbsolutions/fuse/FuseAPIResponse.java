@@ -17,6 +17,8 @@ limitations under the License.
 
 package ca.nbsolutions.fuse;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
@@ -134,6 +136,42 @@ public class FuseAPIResponse {
     public void didFinish() throws IOException {
         $client.getOutputStream().flush();
         $client.close();
+    }
+
+    public void send(byte[] data, String contentType) throws IOException {
+        sendHeaders(FuseAPIResponseStatus.OK, contentType, data.length);
+        pushData(data);
+        didFinish();
+    }
+
+    public void send(byte[] data) throws IOException {
+        send(data, "application/octet-stream");
+    }
+
+    public void send(JSONObject json) throws IOException {
+        byte[] data = json.toString().getBytes();
+        sendHeaders(FuseAPIResponseStatus.OK, "application/json", data.length);
+        pushData(data);
+        didFinish();
+    }
+
+    public void send(String stringData) throws IOException {
+        byte[] data = stringData.getBytes();
+        sendHeaders(FuseAPIResponseStatus.OK, "text/plain", data.length);
+        pushData(data);
+        didFinish();
+    }
+
+    public void send(FuseError error) throws IOException {
+        byte[] data = error.serialize().getBytes();
+        sendHeaders(FuseAPIResponseStatus.ERROR, "application/json", data.length);
+        pushData(data);
+        didFinish();
+    }
+
+    public void send() throws IOException {
+        sendHeaders(204, "text/plain", 0);
+        didFinish();
     }
 
     public void kill() {

@@ -19,30 +19,42 @@ package ca.nbsolutions.fuse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Objects;
 
 public class FuseAPIPacket {
     private final String $route;
     private final InputStream $inputStream;
-    private final long $contentLength;
+    private final Map<String, String> $headers;
 
-    public FuseAPIPacket(String route, long contentLength, InputStream io) {
+
+    public FuseAPIPacket(String route, Map<String, String> headers, InputStream io) {
         $route = route;
         $inputStream = io;
-        $contentLength = contentLength;
+        $headers = headers;
     }
 
     public long getContentLength() {
-        return $contentLength;
+        return Long.parseLong(Objects.requireNonNull($headers.getOrDefault("Content-Length", "0")).trim());
+    }
+
+    public String getContentType() {
+        return $headers.get("Content-Type");
     }
 
     public String readAsString() throws IOException  {
-        byte[] buffer = new byte[(int)$contentLength];
+        byte[] buffer = new byte[(int)getContentLength()];
         $inputStream.read(buffer);
         return new String(buffer, StandardCharsets.UTF_8);
+    }
+
+    public byte[] readAsBinary() throws IOException {
+        byte[] buffer = new byte[(int) getContentLength()];
+        $inputStream.read(buffer);
+        return buffer;
     }
 
     public JSONObject readAsJSON() throws IOException, JSONException {

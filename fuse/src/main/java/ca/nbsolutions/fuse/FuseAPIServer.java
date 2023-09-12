@@ -214,7 +214,7 @@ public class FuseAPIServer {
         Log.i(TAG, "URL: " + header.getPath());
 
         FuseAPIResponse response = new FuseAPIResponse(client);
-        FuseAPIPacket packet = new FuseAPIPacket(header.getPath(), Long.parseLong(header.getHeaders().getOrDefault("Content-Length", "0").trim()), client.getInputStream());
+        FuseAPIPacket packet = new FuseAPIPacket(header.getPath(), header.getHeaders(), client.getInputStream());
         $context.getAPIRouter().execute(packet, response);
     }
 

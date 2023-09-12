@@ -39,7 +39,7 @@ public class FuseRuntime extends FusePlugin {
                 JSONObject obj = new JSONObject();
                 obj.put("version", version);
 
-                this.plugin.send(response, obj);
+                response.send(obj);
             }
         });
 
@@ -51,7 +51,7 @@ public class FuseRuntime extends FusePlugin {
                     $pauseHandlers.add(callbackID);
                 }
 
-                this.plugin.send(response);
+                response.send();
             }
         });
 
@@ -63,7 +63,7 @@ public class FuseRuntime extends FusePlugin {
                     $pauseHandlers.remove(callbackID);
                 }
 
-                this.plugin.send(response);
+                response.send();
             }
         });
 
@@ -75,7 +75,7 @@ public class FuseRuntime extends FusePlugin {
                     $resumeHandlers.add(callbackID);
                 }
 
-                this.plugin.send(response);
+                response.send();
             }
         });
 
@@ -87,7 +87,7 @@ public class FuseRuntime extends FusePlugin {
                     $resumeHandlers.remove(callbackID);
                 }
 
-                this.plugin.send(response);
+                response.send();
             }
         });
     }
