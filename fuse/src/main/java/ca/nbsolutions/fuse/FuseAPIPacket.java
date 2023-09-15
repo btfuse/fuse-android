@@ -17,6 +17,7 @@ limitations under the License.
 
 package ca.nbsolutions.fuse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
@@ -57,8 +58,12 @@ public class FuseAPIPacket {
         return buffer;
     }
 
-    public JSONObject readAsJSON() throws IOException, JSONException {
+    public JSONObject readAsJSONObject() throws IOException, JSONException {
         return new JSONObject(readAsString());
+    }
+
+    public JSONArray readAsJSONArray() throws IOException, JSONException {
+        return new JSONArray(readAsString());
     }
 
     public String getRoute() {

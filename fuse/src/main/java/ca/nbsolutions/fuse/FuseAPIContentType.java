@@ -20,5 +20,6 @@ package ca.nbsolutions.fuse;
 public enum FuseAPIContentType {
     STRING,
     BINARY,
-    JSON
+    JSON_OBJECT,
+    JSON_ARRAY
 }

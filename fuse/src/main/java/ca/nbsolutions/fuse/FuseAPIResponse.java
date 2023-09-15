@@ -17,6 +17,7 @@ limitations under the License.
 
 package ca.nbsolutions.fuse;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -149,6 +150,13 @@ public class FuseAPIResponse {
     }
 
     public void send(JSONObject json) throws IOException {
+        byte[] data = json.toString().getBytes();
+        sendHeaders(FuseAPIResponseStatus.OK, "application/json", data.length);
+        pushData(data);
+        didFinish();
+    }
+
+    public void send(JSONArray json) throws IOException {
         byte[] data = json.toString().getBytes();
         sendHeaders(FuseAPIResponseStatus.OK, "application/json", data.length);
         pushData(data);
