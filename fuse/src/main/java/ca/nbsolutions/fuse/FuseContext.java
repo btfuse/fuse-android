@@ -23,13 +23,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.content.Context;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 import java.io.IOException;
@@ -42,7 +42,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class FuseContext {
     private static final String TAG = "FuseContext";
 
-    private final Context $context;
+    private final AppCompatActivity $context;
 
     private WebView $webview;
 
@@ -58,9 +58,12 @@ public class FuseContext {
 
     private final FuseAPIServer $apiServer;
 
-    public FuseContext(Context context) {
+    private final PermissionRequestHandler $permissionRequestHandler;
+
+    public FuseContext(AppCompatActivity context) {
         $context = context;
         $mainThread = new Handler(Looper.getMainLooper());
+        $permissionRequestHandler = _createPermissionRequest();
         $pluginMapLock = new ReentrantReadWriteLock();
         $pluginMap = new HashMap<String, FusePlugin>();
         $apiRouter = new FuseAPIRouter(this);
@@ -74,6 +77,14 @@ public class FuseContext {
         Log.i(TAG, "API Server Port: " + $apiServer.getPort());
 
         registerPlugin(new FuseRuntime(this));
+    }
+
+    protected PermissionRequestHandler _createPermissionRequest() {
+        return new PermissionRequestHandler(this);
+    }
+
+    public PermissionRequestHandler getPermissionRequestHandler() {
+        return $permissionRequestHandler;
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -151,6 +162,10 @@ public class FuseContext {
         $pluginMapLock.readLock().unlock();
     }
 
+    public void onRequestPermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        $permissionRequestHandler.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
     public void onDestroy() {
         $pluginMapLock.readLock().lock();
         for (FusePlugin plugin : $pluginMap.values()) {
@@ -163,7 +178,7 @@ public class FuseContext {
         return $webview;
     }
 
-    public Context getActivityContext() {
+    public AppCompatActivity getActivityContext() {
         return $context;
     }
 
@@ -202,13 +217,13 @@ public class FuseContext {
 
     public void execCallback(String callbackID, String payload) {
         $mainThread.post(() -> {
-            $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(%s,%s);", callbackID, payload), null);
+            $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(\"%s\",\"%s\");", callbackID, payload), null);
         });
     }
 
     public void execCallback(String callbackID) {
         $mainThread.post(() -> {
-            $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(%s);", callbackID), null);
+            $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(\"%s\");", callbackID), null);
         });
     }
 }

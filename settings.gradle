@@ -34,5 +34,8 @@ include ':fuse'
 include ':EchoPlugin'
 project(':EchoPlugin').projectDir = new File('../plugins/echo/android/EchoPlugin')
 
+include ':PermissionPlugin'
+project(':PermissionPlugin').projectDir = new File('../plugins/permission/android/PermissionPlugin')
+
 include ':testapp'
 project(':testapp').projectDir = new File('../testapp/android/testapp')

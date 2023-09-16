@@ -18,6 +18,7 @@ limitations under the License.
 package ca.nbsolutions.fuse;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -147,6 +148,23 @@ public class FuseAPIResponse {
 
     public void send(byte[] data) throws IOException {
         send(data, "application/octet-stream");
+    }
+
+    public void send(IFuseSerializable serializable) throws IOException {
+        send(serializable, "application/octet-stream");
+    }
+
+    public void send(IFuseSerializable serializable, String contentType) throws IOException {
+        byte[] data;
+        try {
+            data = serializable.serialize();
+        }
+        catch (JSONException ex) {
+            ex.printStackTrace();
+            data = new FuseError("FuseAPIResponse", 0, "Failed to serialize a serializable object").serialize().getBytes();
+            contentType = "application/json";
+        }
+        send(data, contentType);
     }
 
     public void send(JSONObject json) throws IOException {

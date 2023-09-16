@@ -21,6 +21,7 @@ import ca.nbsolutions.fuse.plugins.IFusePluginRegistrar;
  *  - onPause
  *  - onSaveInstanceState(Bundle)
  *  - onLowMemory
+ *  - onRequestPermissionsResult
  *  - onStop
  *  - onDestroy
  */
@@ -98,6 +99,12 @@ public class FuseActivity extends AppCompatActivity {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         $fuseContext.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        $fuseContext.onRequestPermissionResult(requestCode, permissions, grantResults);
     }
 
     @Override
