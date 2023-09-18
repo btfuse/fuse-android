@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.security.SecureRandom;
 
-// TODO: Test Fuse Secret
-
 public class FuseAPIServer {
 
     public static final String TAG = "FuseAPIServer";
