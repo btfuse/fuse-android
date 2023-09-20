@@ -31,6 +31,11 @@ cd ..
 source compiler/_assertGitTag.sh
 cd fuse-android
 
+./gradlew :fuse:test
+if [ $? -ne 0 ]; then
+    exit $?
+fi
+
 echo $VERSION > VERSION
 
 cd ..
