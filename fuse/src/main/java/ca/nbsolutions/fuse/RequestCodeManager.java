@@ -17,6 +17,8 @@ limitations under the License.
 
 package ca.nbsolutions.fuse;
 
+import androidx.annotation.VisibleForTesting;
+
 import java.util.HashMap;
 
 public class RequestCodeManager {
@@ -73,5 +75,16 @@ public class RequestCodeManager {
             }
         } while ($forbiddenCodes.containsKey(requestCode));
         return requestCode;
+    }
+
+    @VisibleForTesting
+    public void reset() {
+        $nextRequestCode = 0;
+        $forbiddenCodes.clear();
+    }
+
+    @VisibleForTesting
+    public void setNextRequestCode(int code) {
+        $nextRequestCode = code;
     }
 }
