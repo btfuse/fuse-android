@@ -19,6 +19,7 @@ package ca.nbsolutions.fuse;
 
 import androidx.annotation.NonNull;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -150,6 +151,14 @@ public class FuseContext {
         $pluginMapLock.readLock().lock();
         for (FusePlugin plugin : $pluginMap.values()) {
             plugin.onStart();
+        }
+        $pluginMapLock.readLock().unlock();
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        $pluginMapLock.readLock().lock();
+        for (FusePlugin plugin : $pluginMap.values()) {
+            plugin.onActivityResult(requestCode, resultCode, data);
         }
         $pluginMapLock.readLock().unlock();
     }

@@ -17,14 +17,15 @@ limitations under the License.
 
 package ca.nbsolutions.fuse;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
 import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.util.concurrent.CompletableFuture;
 import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
@@ -45,12 +46,14 @@ public abstract class FusePlugin {
     private final FuseContext $context;
 
     private final Map<String, APIHandler<? extends FusePlugin>> $handles;
+    private final Map<Integer, CompletableFuture<FuseActivityResult>> $activityResultFutures;
 
     public abstract String getID();
 
     public FusePlugin(FuseContext context) {
         $context = context;
         $handles = new HashMap<>();
+        $activityResultFutures = new HashMap<>();
         _initHandles();
     }
 
@@ -102,7 +105,7 @@ public abstract class FusePlugin {
 
     }
 
-    public void onSaveInstanceState(@NonNull Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle ignored) {
 
     }
 
@@ -112,6 +115,24 @@ public abstract class FusePlugin {
 
     public void onStop() {
 
+    }
+
+    @Keep
+    protected CompletableFuture<FuseActivityResult> _addActivityResultFuture(int requestCode) {
+        CompletableFuture<FuseActivityResult> future = new CompletableFuture<>();
+        $activityResultFutures.put(requestCode, future);
+        return future;
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        CompletableFuture<FuseActivityResult> future = $activityResultFutures.getOrDefault(requestCode, null);
+        if (future == null) {
+            return;
+        }
+
+        $activityResultFutures.remove(requestCode);
+
+        future.complete(new FuseActivityResult(resultCode, data));
     }
 
     public void onDestroy() {
