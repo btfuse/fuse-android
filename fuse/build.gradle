@@ -20,10 +20,6 @@ plugins {
     id 'maven-publish'
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = file('../GRADLE_VERSION').text.trim()
-}
-
 android {
     namespace 'ca.nbsolutions.fuse'
 
