@@ -39,3 +39,4 @@ project(':PermissionPlugin').projectDir = new File('../plugins/permission/androi
 
 include ':testapp'
 project(':testapp').projectDir = new File('../testapp/android/testapp')
+include ':fuseTestTools'

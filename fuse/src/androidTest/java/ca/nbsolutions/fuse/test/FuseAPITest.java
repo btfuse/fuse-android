@@ -30,46 +30,32 @@ import org.junit.Rule;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import ca.nbsolutions.fuse.test.FuseAPITestClient;
 
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+//import java.io.IOException;
+//import java.util.concurrent.Callable;
+//import java.util.concurrent.ExecutionException;
+//import java.util.concurrent.ExecutorService;
+//import java.util.concurrent.Executors;
+//import java.util.concurrent.Future;
+
+//import okhttp3.MediaType;
+//import okhttp3.OkHttpClient;
+//import okhttp3.Request;
+//import okhttp3.RequestBody;
+//import okhttp3.Response;
 
 @RunWith(AndroidJUnit4.class)
 public class FuseAPITest {
-
-    private static OkHttpClient $httpClient;
-    private static ExecutorService $bgThread;
-
-    private static final String API_ENDPOINT_BASE = "http://localhost";
-    private static final String SECRET_HEADER = "X-Fuse-Secret";
 
     @Rule
     public ActivityScenarioRule<TestFuseActivity> activityRule = new ActivityScenarioRule<>(TestFuseActivity.class);
 
     @BeforeClass
-    public static void setUp() {
-        $httpClient = new OkHttpClient();
-        $bgThread = Executors.newSingleThreadExecutor();
-    }
+    public static void setUp() {}
 
     @AfterClass
-    public static void tearDown() {
-        $httpClient = null;
-        $bgThread.shutdown();
-    }
-
-    private String $getEndpoint(int port, String pluginID, String api) {
-        return API_ENDPOINT_BASE + ":" + port + "/api/" + pluginID + "/" + api;
-    }
+    public static void tearDown() {}
 
     @Test
     public void shouldHaveAPort() {
@@ -93,39 +79,18 @@ public class FuseAPITest {
             int port = activity.getFuseContext().getAPIPort();
             String secret = activity.getFuseContext().getAPISecret();
 
-            String endpoint = $getEndpoint(port, "echo", "echo");
-
-            Request request = new Request.Builder()
-                    .addHeader(SECRET_HEADER, secret)
-                    .url(endpoint)
-                    .post(RequestBody.create("Hello Test!", MediaType.parse("text/plain")))
+            FuseAPITestClient client = new FuseAPITestClient.Builder()
+                    .setAPIPort(port)
+                    .setAPISecret(secret)
+                    .setPluginID("echo")
+                    .setType("text/plain")
+                    .setEndpoint("echo")
+                    .setContent("Hello Test!")
                     .build();
 
-            Future<Response> future = $bgThread.submit((Callable<Response>) () -> {
-                return $httpClient.newCall(request).execute();
-            });
-
-            Response response = null;
-            try {
-                response = future.get();
-            } catch (ExecutionException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-            int code = response.code();
-            assertEquals(200, code);
-
-            Response finalResponse = response;
-            Future<String> contentFuture = $bgThread.submit((Callable<String>) () -> {
-                return finalResponse.body().string();
-            });
-
-            try {
-                String body = contentFuture.get();
-                assertTrue(body.contentEquals("Hello Test!"));
-            } catch (ExecutionException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            FuseAPITestClient.FuseAPITestResponse response = client.execute();
+            assertEquals(200, response.getStatus());
+            assertTrue(response.readAsString().contains("Hello Test!"));
         });
     }
 }
