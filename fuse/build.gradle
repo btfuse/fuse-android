@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.ManagedVirtualDevice
 
 /*
 Copyright 2023 Norman Breau 
@@ -54,6 +55,60 @@ android {
             withSourcesJar()
         }
     }
+
+    testOptions {
+        managedDevices {
+            devices {
+                api27 (ManagedVirtualDevice) {
+                    device = "Pixel 7"
+                    apiLevel = 27
+                    systemImageSource = "aosp"
+                }
+
+                api28 (ManagedVirtualDevice) {
+                    device = "Pixel 7"
+                    apiLevel = 28
+                    systemImageSource = "aosp"
+                }
+
+                api29 (ManagedVirtualDevice) {
+                    device = "Pixel 7"
+                    apiLevel = 29
+                    systemImageSource = "aosp"
+                }
+
+                api30 (ManagedVirtualDevice) {
+                    device = "Pixel 7"
+                    apiLevel = 30
+                    systemImageSource = "aosp"
+                }
+
+                api31 (ManagedVirtualDevice) {
+                    device = "Pixel 7"
+                    apiLevel = 31
+                    systemImageSource = "aosp"
+                }
+
+                api32 (ManagedVirtualDevice) {
+                    device = "Pixel 7"
+                    apiLevel = 32
+                    systemImageSource = "aosp"
+                }
+
+                api33 (ManagedVirtualDevice) {
+                    device = "Pixel 7"
+                    apiLevel = 33
+                    systemImageSource = "aosp"
+                }
+
+                api34 (ManagedVirtualDevice) {
+                    device = "Pixel 7"
+                    apiLevel = 34
+                    systemImageSource = "google"
+                }
+            }
+        }
+    }
 }
 
 dependencies {
@@ -66,6 +121,9 @@ dependencies {
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test:rules:1.5.0'
+    androidTestImplementation 'com.squareup.okhttp3:okhttp:4.9.1'
+    androidTestImplementation project(':EchoPlugin')
 }
 
 publishing {

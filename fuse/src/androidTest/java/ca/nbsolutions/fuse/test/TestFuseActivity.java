@@ -1,6 +1,6 @@
 
 /*
-Copyright 2023 Norman Breau 
+Copyright 2023 Norman Breau
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,20 +15,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-plugins {
-    id 'com.android.application' version '8.2.0-beta06' apply false
-    id 'com.android.library' version '8.2.0-beta06' apply false
-}
+package ca.nbsolutions.fuse.test;
 
-allprojects {
-    subprojects {
-        afterEvaluate {
-            tasks.withType(JavaCompile).tap {
-                configureEach {
-                    options.compilerArgs += "-Xlint:deprecation"
-                }
-            }
-        }
+import android.os.Bundle;
+
+import ca.nbsolutions.fuse.FuseActivity;
+import ca.nbsolutions.fuse.FuseContext;
+import ca.nbsolutions.fuse.plugins.EchoPlugin;
+
+public class TestFuseActivity extends FuseActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        FuseContext fuseContext = getFuseContext();
+        fuseContext.registerPlugin(new EchoPlugin(fuseContext));
     }
 }
