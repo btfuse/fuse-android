@@ -32,7 +32,7 @@ rootProject.name = "Fuse"
 include ':fuse'
 
 include ':EchoPlugin'
-project(':EchoPlugin').projectDir = new File('../plugins/echo/android/EchoPlugin')
+project(':EchoPlugin').projectDir = new File('./testplugins/EchoPlugin')
 
 include ':PermissionPlugin'
 project(':PermissionPlugin').projectDir = new File('../plugins/permission/android/PermissionPlugin')
