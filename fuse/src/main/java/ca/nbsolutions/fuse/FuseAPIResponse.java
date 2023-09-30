@@ -17,11 +17,16 @@ limitations under the License.
 
 package ca.nbsolutions.fuse;
 
+import android.os.Handler;
+import android.os.HandlerThread;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.net.Socket;
 import java.util.HashMap;
 
@@ -58,13 +63,21 @@ public class FuseAPIResponse {
 
     private String $contentType;
     private long $contentLength;
+    private final Handler $threadHandler;
 
     public FuseAPIResponse(Socket client) {
+        HandlerThread thread = new HandlerThread("FuseAPIResponse_networkingThread");
+        thread.start();
+        $threadHandler = new Handler(thread.getLooper());
         $hasSentHeaders = false;
         $client = client;
         $status = FuseAPIResponseStatus.OK.getValue();
         $contentType = "application/octet-stream";
         $contentLength = 0;
+    }
+
+    public Handler getNetworkThreadHandler() {
+        return $threadHandler;
     }
 
     public int getStatus() {
@@ -89,25 +102,25 @@ public class FuseAPIResponse {
         $contentLength = size;
     }
 
-    public void sendHeaders(int status, String contentType, long contentLength) throws IOException {
+    public void sendHeaders(int status, String contentType, long contentLength) {
         setStatus(status);
         setContentType(contentType);
         setContentLength(contentLength);
         didFinishHeaders();
     }
 
-    public void sendHeaders(FuseAPIResponseStatus status, String contentType, long contentLength) throws IOException {
+    public void sendHeaders(FuseAPIResponseStatus status, String contentType, long contentLength) {
         sendHeaders(status.getValue(), contentType, contentLength);
     }
 
-    public void didInternalError() throws IOException {
+    public void didInternalError() {
         byte[] data = "Internal Error. See native logs for more details.".getBytes();
         sendHeaders(FuseAPIResponseStatus.INTERNAL, "text/plain", data.length);
         pushData(data);
         didFinish();
     }
 
-    public void didFinishHeaders() throws IOException {
+    public void didFinishHeaders() {
         StringBuilder sb = new StringBuilder();
         sb.append("HTTP/1.1 ")
                 .append(Integer.toString($status))
@@ -121,40 +134,71 @@ public class FuseAPIResponse {
                 .append("Content-Length: ").append(Long.toString($contentLength)).append("\r\n")
                 .append("\r\n");
 
-        $client.getOutputStream().write(sb.toString().getBytes());
-        $client.getOutputStream().flush();
+        $write(sb.toString().getBytes(), true);
 
         $hasSentHeaders = true;
     }
 
-    public void pushData(byte[] data) throws IOException {
+    private void $write(byte[] data) {
+        $write(data, false);
+    }
+
+    private void $write(byte[] data, boolean flush) {
+        $threadHandler.post(() -> {
+            __writeImpl(data, flush);
+        });
+    }
+
+    protected void __writeImpl(byte[] data, boolean flush) {
+        try {
+            OutputStream io = $client.getOutputStream();
+            io.write(data);
+            if (flush) {
+                io.flush();
+            }
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+            this.kill();
+        }
+    }
+
+    public void pushData(byte[] data) {
         if (!$hasSentHeaders) {
             throw new RuntimeException("Cannot push data before headers have been sent. Call finishHeaders first!");
         }
 
-        $client.getOutputStream().write(data);
+        $write(data);
     }
 
-    public void didFinish() throws IOException {
-        $client.getOutputStream().flush();
-        $client.close();
+    public void didFinish() {
+        WeakReference<FuseAPIResponse> self = new WeakReference<>(this);
+        $threadHandler.post(() -> {
+            try {
+                $client.getOutputStream().flush();
+                $client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                self.get().kill();
+            }
+        });
     }
 
-    public void send(byte[] data, String contentType) throws IOException {
+    public void send(byte[] data, String contentType) {
         sendHeaders(FuseAPIResponseStatus.OK, contentType, data.length);
         pushData(data);
         didFinish();
     }
 
-    public void send(byte[] data) throws IOException {
+    public void send(byte[] data) {
         send(data, "application/octet-stream");
     }
 
-    public void send(IFuseSerializable serializable) throws IOException {
+    public void send(IFuseSerializable serializable) {
         send(serializable, "application/octet-stream");
     }
 
-    public void send(IFuseSerializable serializable, String contentType) throws IOException {
+    public void send(IFuseSerializable serializable, String contentType) {
         byte[] data;
         try {
             data = serializable.serialize();
@@ -167,44 +211,46 @@ public class FuseAPIResponse {
         send(data, contentType);
     }
 
-    public void send(JSONObject json) throws IOException {
+    public void send(JSONObject json) {
         byte[] data = json.toString().getBytes();
         sendHeaders(FuseAPIResponseStatus.OK, "application/json", data.length);
         pushData(data);
         didFinish();
     }
 
-    public void send(JSONArray json) throws IOException {
+    public void send(JSONArray json) {
         byte[] data = json.toString().getBytes();
         sendHeaders(FuseAPIResponseStatus.OK, "application/json", data.length);
         pushData(data);
         didFinish();
     }
 
-    public void send(String stringData) throws IOException {
+    public void send(String stringData) {
         byte[] data = stringData.getBytes();
         sendHeaders(FuseAPIResponseStatus.OK, "text/plain", data.length);
         pushData(data);
         didFinish();
     }
 
-    public void send(FuseError error) throws IOException {
+    public void send(FuseError error) {
         byte[] data = error.serialize().getBytes();
         sendHeaders(FuseAPIResponseStatus.ERROR, "application/json", data.length);
         pushData(data);
         didFinish();
     }
 
-    public void send() throws IOException {
+    public void send() {
         sendHeaders(204, "text/plain", 0);
         didFinish();
     }
 
     public void kill() {
-        try {
-            $client.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        $threadHandler.post(() -> {
+            try {
+                $client.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

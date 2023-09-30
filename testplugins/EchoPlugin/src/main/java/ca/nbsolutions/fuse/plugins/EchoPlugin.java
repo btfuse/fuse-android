@@ -2,6 +2,7 @@ package ca.nbsolutions.fuse.plugins;
 
 import android.content.res.AssetFileDescriptor;
 import android.content.res.TypedArray;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,6 +83,20 @@ public class EchoPlugin extends FusePlugin {
                 };
 
                 timer.scheduleAtFixedRate(task, 0, 1000);
+            }
+        });
+
+        this.attachHandler("/threadtest", new APIHandler<EchoPlugin>(this) {
+            @Override
+            public void execute(FuseAPIPacket packet, FuseAPIResponse response) throws IOException {
+                byte[] data = packet.readAsBinary();
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        response.send(data, packet.getContentType());
+                    }
+                }).start();
             }
         });
     }

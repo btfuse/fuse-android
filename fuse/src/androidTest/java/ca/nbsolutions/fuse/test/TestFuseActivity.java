@@ -19,11 +19,10 @@ package ca.nbsolutions.fuse.test;
 
 import android.os.Bundle;
 
-import ca.nbsolutions.fuse.FuseActivity;
 import ca.nbsolutions.fuse.FuseContext;
 import ca.nbsolutions.fuse.plugins.EchoPlugin;
 
-public class TestFuseActivity extends FuseActivity {
+public class TestFuseActivity extends FuseTestActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -15,12 +15,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package ca.nbsolutions.fuse;
+package ca.nbsolutions.fuse.test;
 
-import org.json.JSONException;
+import android.os.Bundle;
 
-import java.io.IOException;
+import ca.nbsolutions.fuse.FuseActivity;
 
-public interface IFuseSerializable {
-    byte[] serialize() throws JSONException;
+public class FuseTestActivity extends FuseActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        this.getFuseContext().setResponseFactory(new FuseTestAPIResponseFactory());
+    }
 }

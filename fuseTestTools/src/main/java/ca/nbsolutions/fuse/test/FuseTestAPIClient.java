@@ -17,21 +17,26 @@ limitations under the License.
 
 package ca.nbsolutions.fuse.test;
 
-import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class FuseAPITestClient {
+import com.googlecode.junittoolbox.PollingWait;
+
+public class FuseTestAPIClient {
     private String $pluginID;
     private String $apiSecret;
+
+    private PollingWait $waiter;
     private String $api;
     private int $port;
 
@@ -83,8 +88,8 @@ public class FuseAPITestClient {
             return this;
         }
 
-        public FuseAPITestClient build() {
-            return new FuseAPITestClient($pluginID, $port, $apiSecret, $api, $content, $type);
+        public FuseTestAPIClient build() {
+            return new FuseTestAPIClient($pluginID, $port, $apiSecret, $api, $content, $type);
         }
     }
 
@@ -113,7 +118,7 @@ public class FuseAPITestClient {
     private static final String API_ENDPOINT_BASE = "http://localhost";
     private static final String SECRET_HEADER = "X-Fuse-Secret";
 
-    public FuseAPITestClient(String pluginID, int port, String secret, String endpoint, byte[] content, String type) {
+    public FuseTestAPIClient(String pluginID, int port, String secret, String endpoint, byte[] content, String type) {
         $pluginID = pluginID;
         $port = port;
         $apiSecret = secret;
@@ -123,11 +128,17 @@ public class FuseAPITestClient {
         $bgThread = Executors.newSingleThreadExecutor();
 
         if ($httpClient == null) {
-            $httpClient = new OkHttpClient();
+            $httpClient = new OkHttpClient.Builder()
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(60, TimeUnit.SECONDS)
+                    .writeTimeout(60, TimeUnit.SECONDS)
+                    .build();
         }
     }
 
     public FuseAPITestResponse execute() {
+        PollingWait waiter = new PollingWait().timeoutAfter(60, TimeUnit.SECONDS).pollEvery(100, TimeUnit.MILLISECONDS);
+
         Future<FuseAPITestResponse> future = $bgThread.submit(new Callable<FuseAPITestResponse>() {
             @Override
             public FuseAPITestResponse call() throws Exception {
@@ -140,6 +151,13 @@ public class FuseAPITestClient {
                 Response httpResponse = $httpClient.newCall(request).execute();
 
                 return new FuseAPITestResponse(httpResponse.code(), httpResponse.body().bytes());
+            }
+        });
+
+        waiter.until(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                return future.isDone() || future.isCancelled();
             }
         });
 

@@ -194,7 +194,7 @@ public class FuseAPIServer {
         Header header = $parseHeader(client.getInputStream());
 
         if (header.getMethod().equals("OPTIONS")) {
-            FuseAPIResponse res = new FuseAPIResponse(client);
+            FuseAPIResponse res = $context.getResponseFactory().create(client);
             res.setStatus(FuseAPIResponseStatus.OK);
             res.setContentType("text/plain");
             res.setContentLength(0);
@@ -211,7 +211,7 @@ public class FuseAPIServer {
         Log.i(TAG, "Method: " + header.getMethod());
         Log.i(TAG, "URL: " + header.getPath());
 
-        FuseAPIResponse response = new FuseAPIResponse(client);
+        FuseAPIResponse response = $context.getResponseFactory().create(client);
         FuseAPIPacket packet = new FuseAPIPacket(header.getPath(), header.getHeaders(), client.getInputStream());
         $context.getAPIRouter().execute(packet, response);
     }

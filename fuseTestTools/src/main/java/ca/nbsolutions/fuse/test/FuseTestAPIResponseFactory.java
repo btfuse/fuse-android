@@ -15,12 +15,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package ca.nbsolutions.fuse;
+package ca.nbsolutions.fuse.test;
 
-import org.json.JSONException;
+import java.net.Socket;
 
-import java.io.IOException;
+import ca.nbsolutions.fuse.FuseAPIResponse;
+import ca.nbsolutions.fuse.FuseAPIResponseFactory;
 
-public interface IFuseSerializable {
-    byte[] serialize() throws JSONException;
+public class FuseTestAPIResponseFactory extends FuseAPIResponseFactory {
+
+    @Override
+    public FuseAPIResponse create(Socket socket) {
+        return new FuseTestAPIResponse(socket);
+    }
 }

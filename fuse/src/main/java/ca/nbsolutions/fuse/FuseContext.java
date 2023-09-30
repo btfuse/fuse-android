@@ -36,6 +36,7 @@ import androidx.webkit.WebViewClientCompat;
 import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
+
 import ca.nbsolutions.fuse.plugins.FuseRuntime;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -61,8 +62,11 @@ public class FuseContext {
 
     private final PermissionRequestHandler $permissionRequestHandler;
 
+    private FuseAPIResponseFactory $responseFactory;
+
     public FuseContext(AppCompatActivity context) {
         $context = context;
+        $responseFactory = new FuseAPIResponseFactory();
         $mainThread = new Handler(Looper.getMainLooper());
         $permissionRequestHandler = _createPermissionRequest();
         $pluginMapLock = new ReentrantReadWriteLock();
@@ -78,6 +82,14 @@ public class FuseContext {
         Log.i(TAG, "API Server Port: " + $apiServer.getPort());
 
         registerPlugin(new FuseRuntime(this));
+    }
+
+    public void setResponseFactory(FuseAPIResponseFactory factory) {
+        $responseFactory = factory;
+    }
+
+    public FuseAPIResponseFactory getResponseFactory() {
+        return $responseFactory;
     }
 
     protected PermissionRequestHandler _createPermissionRequest() {
@@ -234,5 +246,9 @@ public class FuseContext {
         $mainThread.post(() -> {
             $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(\"%s\");", callbackID), null);
         });
+    }
+
+    public void runOnMainThread(Runnable runnable) {
+        $mainThread.post(runnable);
     }
 }

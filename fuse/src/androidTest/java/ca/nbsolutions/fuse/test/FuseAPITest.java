@@ -17,8 +17,6 @@ limitations under the License.
 
 package ca.nbsolutions.fuse.test;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 
@@ -64,7 +62,7 @@ public class FuseAPITest {
             int port = activity.getFuseContext().getAPIPort();
             String secret = activity.getFuseContext().getAPISecret();
 
-            FuseAPITestClient client = new FuseAPITestClient.Builder()
+            FuseTestAPIClient client = new FuseTestAPIClient.Builder()
                     .setAPIPort(port)
                     .setAPISecret(secret)
                     .setPluginID("echo")
@@ -73,7 +71,28 @@ public class FuseAPITest {
                     .setContent("Hello Test!")
                     .build();
 
-            FuseAPITestClient.FuseAPITestResponse response = client.execute();
+            FuseTestAPIClient.FuseAPITestResponse response = client.execute();
+            assertEquals(200, response.getStatus());
+            assertTrue(response.readAsString().contains("Hello Test!"));
+        });
+    }
+
+    @Test
+    public void canUseAnAPIThatSwitchesToMainThread() {
+        activityRule.getScenario().onActivity(activity -> {
+            int port = activity.getFuseContext().getAPIPort();
+            String secret = activity.getFuseContext().getAPISecret();
+
+            FuseTestAPIClient client = new FuseTestAPIClient.Builder()
+                    .setAPIPort(port)
+                    .setAPISecret(secret)
+                    .setPluginID("echo")
+                    .setType("text/plain")
+                    .setEndpoint("threadtest")
+                    .setContent("Hello Test!")
+                    .build();
+
+            FuseTestAPIClient.FuseAPITestResponse response = client.execute();
             assertEquals(200, response.getStatus());
             assertTrue(response.readAsString().contains("Hello Test!"));
         });

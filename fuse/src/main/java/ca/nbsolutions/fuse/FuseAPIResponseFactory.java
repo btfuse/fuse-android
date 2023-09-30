@@ -17,10 +17,10 @@ limitations under the License.
 
 package ca.nbsolutions.fuse;
 
-import org.json.JSONException;
+import java.net.Socket;
 
-import java.io.IOException;
-
-public interface IFuseSerializable {
-    byte[] serialize() throws JSONException;
+public class FuseAPIResponseFactory {
+    public FuseAPIResponse create(Socket socket) {
+        return new FuseAPIResponse(socket);
+    }
 }

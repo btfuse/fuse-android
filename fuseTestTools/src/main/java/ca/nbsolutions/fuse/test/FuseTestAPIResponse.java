@@ -15,12 +15,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package ca.nbsolutions.fuse;
+package ca.nbsolutions.fuse.test;
 
-import org.json.JSONException;
+import java.net.Socket;
 
-import java.io.IOException;
+import ca.nbsolutions.fuse.FuseAPIResponse;
 
-public interface IFuseSerializable {
-    byte[] serialize() throws JSONException;
+import static org.junit.Assert.*;
+
+import android.os.Looper;
+
+public class FuseTestAPIResponse extends FuseAPIResponse {
+
+    public FuseTestAPIResponse(Socket client) {
+        super(client);
+    }
+
+    @Override
+    protected void __writeImpl(byte[] data, boolean flush) {
+        assertSame("Should be on network thread", Looper.myLooper(), getNetworkThreadHandler().getLooper());
+        super.__writeImpl(data, flush);
+    }
 }

@@ -19,6 +19,18 @@ source ../build-tools/assertions.sh
 target="$1"
 
 if [ "$target" == "" ]; then
+    # ./gradlew \
+    #     --parallel :fuse:test \
+    #     --parallel :fuse:api27DebugAndroidTest \
+    #     --parallel :fuse:api28DebugAndroidTest \
+    #     --parallel :fuse:api29DebugAndroidTest 
+    #     # --parallel :fuse:api30DebugAndroidTest \
+    #     # --parallel :fuse:api31DebugAndroidTest \
+    #     # --parallel :fuse:api32DebugAndroidTest \
+    #     # --parallel :fuse:api33DebugAndroidTest \
+    #     # --parallel :fuse:api34DebugAndroidTest
+    # assertLastCall
+
     ./gradlew :fuse:test
     assertLastCall
 
