@@ -60,21 +60,21 @@ android {
         managedDevices {
             devices {
                 api27 (ManagedVirtualDevice) {
-                    device = "Pixel 4"
+                    device = "Pixel 7"
                     apiLevel = 27
-                    systemImageSource = "google"
+                    systemImageSource = "aosp"
                 }
 
                 api28 (ManagedVirtualDevice) {
-                    device = "Pixel 4"
+                    device = "Pixel 7"
                     apiLevel = 28
-                    systemImageSource = "google"
+                    systemImageSource = "aosp"
                 }
 
                 api29 (ManagedVirtualDevice) {
-                    device = "Pixel 4"
+                    device = "Pixel 7"
                     apiLevel = 29
-                    systemImageSource = "google"
+                    systemImageSource = "aosp"
                 }
 
                 api30 (ManagedVirtualDevice) {

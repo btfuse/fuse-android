@@ -19,6 +19,7 @@ source ../build-tools/assertions.sh
 target="$1"
 
 if [ "$target" == "" ]; then
+    # There's a bug that prevents concurrent tests to run via GMD
     # ./gradlew \
     #     --parallel :fuse:test \
     #     --parallel :fuse:api27DebugAndroidTest \
