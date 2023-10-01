@@ -67,7 +67,7 @@ public class FuseAPITest {
                     .setAPISecret(secret)
                     .setPluginID("echo")
                     .setType("text/plain")
-                    .setEndpoint("echo")
+                    .setEndpoint("/echo")
                     .setContent("Hello Test!")
                     .build();
 
@@ -88,7 +88,7 @@ public class FuseAPITest {
                     .setAPISecret(secret)
                     .setPluginID("echo")
                     .setType("text/plain")
-                    .setEndpoint("threadtest")
+                    .setEndpoint("/threadtest")
                     .setContent("Hello Test!")
                     .build();
 

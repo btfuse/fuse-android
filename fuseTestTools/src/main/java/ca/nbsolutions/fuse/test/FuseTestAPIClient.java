@@ -173,6 +173,6 @@ public class FuseTestAPIClient {
     }
 
     private String $getEndpoint() {
-        return API_ENDPOINT_BASE + ":" + $port + "/api/" + $pluginID + "/" + $api;
+        return API_ENDPOINT_BASE + ":" + $port + "/api/" + $pluginID + $api;
     }
 }
