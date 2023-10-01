@@ -44,7 +44,7 @@ public class FuseAPITest {
     public void shouldHaveAPort() {
         activityRule.getScenario().onActivity(activity -> {
             int port = activity.getFuseContext().getAPIPort();
-            assertTrue(port >= 1 && port <= 65535);
+            assertTrue(port >= 1024 && port <= 65535);
         });
     }
 
