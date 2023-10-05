@@ -12,7 +12,6 @@
             <option value="$PROJECT_DIR$/fuse" />
             <option value="$PROJECT_DIR$/fuseTestTools" />
             <option value="$PROJECT_DIR$/testplugins/EchoPlugin" />
-            <option value="$PROJECT_DIR$/../plugins/permission/android/PermissionPlugin" />
             <option value="$PROJECT_DIR$/../testapp/android/testapp" />
           </set>
         </option>

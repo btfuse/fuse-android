@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.security.SecureRandom;
@@ -25,27 +26,27 @@ public class FuseAPIServer {
         $context = context;
         $secret = $generateSecret();
         $httpServer = new ServerSocket(0);
+        FuseLogger logger = $context.getLogger();
 
         Thread serverThread = new Thread(() -> {
             try {
                 while (true) {
                     Socket client = $httpServer.accept();
-                    Log.i(TAG, "Received request from: " + client.getInetAddress().getHostAddress());
                     new Thread(() -> {
                         try {
                             $handleConnection(client);
                         } catch (IOException e) {
-                            Log.e(TAG, "Client Socket Error: ", e);
+                            logger.error(TAG, "Client Socket Error: ", e);
                             try {
                                 client.close();
                             } catch (IOException ex) {
-                                Log.e(TAG, "Client Socket Error: ", e);
+                                logger.error(TAG, "Client Socket Error: ", e);
                             }
                         }
                     }).start();
                 }
             } catch (IOException e) {
-                Log.e(TAG, "Socket Error:", e);
+                logger.error(TAG, "Socket Error:", e);
             }
         });
 
@@ -193,8 +194,10 @@ public class FuseAPIServer {
     private void $handleConnection(Socket client) throws IOException {
         Header header = $parseHeader(client.getInputStream());
 
+        $context.getLogger().info(TAG, String.format(Locale.US, "API Server Request (%d): (%s) (%s)", client.hashCode(), header.getMethod(), header.getPath()));
+
         if (header.getMethod().equals("OPTIONS")) {
-            FuseAPIResponse res = $context.getResponseFactory().create(client);
+            FuseAPIResponse res = $context.getResponseFactory().create($context, client);
             res.setStatus(FuseAPIResponseStatus.OK);
             res.setContentType("text/plain");
             res.setContentLength(0);
@@ -208,10 +211,7 @@ public class FuseAPIServer {
             return;
         }
 
-        Log.i(TAG, "Method: " + header.getMethod());
-        Log.i(TAG, "URL: " + header.getPath());
-
-        FuseAPIResponse response = $context.getResponseFactory().create(client);
+        FuseAPIResponse response = $context.getResponseFactory().create($context, client);
         FuseAPIPacket packet = new FuseAPIPacket(header.getPath(), header.getHeaders(), client.getInputStream());
         $context.getAPIRouter().execute(packet, response);
     }

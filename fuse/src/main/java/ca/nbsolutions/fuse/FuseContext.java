@@ -19,7 +19,10 @@ package ca.nbsolutions.fuse;
 
 import androidx.annotation.NonNull;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -64,8 +67,11 @@ public class FuseContext {
 
     private FuseAPIResponseFactory $responseFactory;
 
+    private FuseLogger $logger;
+
     public FuseContext(AppCompatActivity context) {
         $context = context;
+        $logger = new FuseLogger(this);
         $responseFactory = new FuseAPIResponseFactory();
         $mainThread = new Handler(Looper.getMainLooper());
         $permissionRequestHandler = _createPermissionRequest();
@@ -96,12 +102,36 @@ public class FuseContext {
         return new PermissionRequestHandler(this);
     }
 
+    public FuseLogger getLogger() {
+        return $logger;
+    }
+
     public PermissionRequestHandler getPermissionRequestHandler() {
         return $permissionRequestHandler;
     }
 
+    public boolean isDebug() {
+        try {
+            Context context = getActivityContext();
+            PackageManager pm = context.getPackageManager();
+            ApplicationInfo appInfo = pm.getApplicationInfo(context.getPackageName(), 0);
+            return (appInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        } catch (PackageManager.NameNotFoundException e) {
+            // Handle the exception as needed.
+            return false; // Return a default value in case of an error.
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     public void onCreate(Bundle bundle) {
+        if (isDebug()) {
+            int logLevel = $logger.getLevel();
+            logLevel |= FuseLoggerLevel.DEBUG;
+            $logger.setLevel(logLevel);
+        }
+
+        $logger.info(TAG, "Fuse Version: " + BuildConfig.FUSE_VERSION);
+
         $webview = new WebView($context);
 
         final WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
@@ -113,7 +143,8 @@ public class FuseContext {
         $webview.setWebViewClient(new WebViewClientCompat() {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                return assetLoader.shouldInterceptRequest(request.getUrl());
+            $logger.info(TAG, "DOM Request: " + request.getUrl());
+            return assetLoader.shouldInterceptRequest(request.getUrl());
             }
         });
 
@@ -211,7 +242,7 @@ public class FuseContext {
 
     /*package private*/ void $registerPlugin(FusePlugin plugin) {
         if ($pluginMap.containsKey(plugin.getID())) {
-            Log.w(TAG, "Plugin \"" + plugin.getID() + "\" is already registered.");
+            $logger.warn(TAG, "Plugin \"" + plugin.getID() + "\" is already registered.");
             return;
         }
 
@@ -236,9 +267,34 @@ public class FuseContext {
         return $apiServer.getPort();
     }
 
+    @JavascriptInterface
+    public void setLogCallback(String callbackID) {
+        $logger.setCallbackID(callbackID);
+    }
+
+    @JavascriptInterface
+    public void log(int level, String message) {
+        String tag = "FuseWebviewRuntime";
+
+        switch (level) {
+            case FuseLoggerLevel.DEBUG:
+                Log.d(tag, message);
+                break;
+            case FuseLoggerLevel.INFO:
+                Log.i(tag, message);
+                break;
+            case FuseLoggerLevel.WARN:
+                Log.w(tag, message);
+                break;
+            case FuseLoggerLevel.ERROR:
+                Log.e(tag, message);
+                break;
+        }
+    }
+
     public void execCallback(String callbackID, String payload) {
         $mainThread.post(() -> {
-            $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(\"%s\",\"%s\");", callbackID, payload), null);
+            $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(\"%s\",\"%s\");", callbackID, payload.replace("\"", "\\\"")), null);
         });
     }
 

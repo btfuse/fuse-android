@@ -20,7 +20,7 @@ package ca.nbsolutions.fuse;
 import java.net.Socket;
 
 public class FuseAPIResponseFactory {
-    public FuseAPIResponse create(Socket socket) {
-        return new FuseAPIResponse(socket);
+    public FuseAPIResponse create(FuseContext context, Socket socket) {
+        return new FuseAPIResponse(context, socket);
     }
 }

@@ -19,6 +19,7 @@ package ca.nbsolutions.fuse;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,8 +30,11 @@ import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class FuseAPIResponse {
+
+    private static final String TAG = "FuseAPIResponse";
 
     private static class StatusCodes {
         private final HashMap<Integer, String> $statusTextMap;
@@ -57,6 +61,7 @@ public class FuseAPIResponse {
         }
     }
 
+    FuseContext $context;
     private int $status;
     private Socket $client;
     private boolean $hasSentHeaders;
@@ -64,8 +69,11 @@ public class FuseAPIResponse {
     private String $contentType;
     private long $contentLength;
     private final Handler $threadHandler;
+    long $startTime;
 
-    public FuseAPIResponse(Socket client) {
+    public FuseAPIResponse(FuseContext context, Socket client) {
+        $startTime = SystemClock.elapsedRealtimeNanos();
+        $context = context;
         HandlerThread thread = new HandlerThread("FuseAPIResponse_networkingThread");
         thread.start();
         $threadHandler = new Handler(thread.getLooper());
@@ -177,6 +185,7 @@ public class FuseAPIResponse {
             try {
                 $client.getOutputStream().flush();
                 $client.close();
+                $printElapsedTime();
             } catch (IOException e) {
                 e.printStackTrace();
                 self.get().kill();
@@ -248,9 +257,18 @@ public class FuseAPIResponse {
         $threadHandler.post(() -> {
             try {
                 $client.close();
+                $printElapsedTime();
             } catch (IOException e) {
+                $printElapsedTime();
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    private void $printElapsedTime() {
+        long elapsed = SystemClock.elapsedRealtimeNanos() - $startTime;
+        double inSeconds = (double)elapsed / (double)1e9;
+
+        $context.getLogger().info(TAG, String.format(Locale.US, "Response (Request %d) closed with status %d in %fs", $client.hashCode(), $status, inSeconds));
     }
 }

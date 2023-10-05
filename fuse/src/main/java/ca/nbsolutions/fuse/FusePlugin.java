@@ -80,15 +80,17 @@ public abstract class FusePlugin {
             return;
         }
 
+        FuseLogger logger = getContext().getLogger();
+
         try {
             handler.execute(packet, response);
         }
         catch (JSONException ex) {
-            Log.e(TAG, "JSON Exception", ex);
+            logger.error(TAG, "JSON Exception", ex);
             response.kill();
         }
         catch (IOException ex) {
-            Log.e(TAG, "IO Error", ex);
+            logger.error(TAG, "IO Error", ex);
             response.kill();
         }
     }

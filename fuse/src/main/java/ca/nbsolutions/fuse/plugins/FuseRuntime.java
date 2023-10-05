@@ -38,6 +38,7 @@ public class FuseRuntime extends FusePlugin {
 
                 JSONObject obj = new JSONObject();
                 obj.put("version", version);
+                obj.put("debugMode", this.plugin.getContext().isDebug());
 
                 response.send(obj);
             }
