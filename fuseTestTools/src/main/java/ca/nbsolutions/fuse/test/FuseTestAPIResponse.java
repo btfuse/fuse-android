@@ -20,6 +20,7 @@ package ca.nbsolutions.fuse.test;
 import java.net.Socket;
 
 import ca.nbsolutions.fuse.FuseAPIResponse;
+import ca.nbsolutions.fuse.FuseContext;
 
 import static org.junit.Assert.*;
 
@@ -27,8 +28,8 @@ import android.os.Looper;
 
 public class FuseTestAPIResponse extends FuseAPIResponse {
 
-    public FuseTestAPIResponse(Socket client) {
-        super(client);
+    public FuseTestAPIResponse(FuseContext context, Socket client) {
+        super(context, client);
     }
 
     @Override

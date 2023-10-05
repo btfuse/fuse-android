@@ -21,11 +21,12 @@ import java.net.Socket;
 
 import ca.nbsolutions.fuse.FuseAPIResponse;
 import ca.nbsolutions.fuse.FuseAPIResponseFactory;
+import ca.nbsolutions.fuse.FuseContext;
 
 public class FuseTestAPIResponseFactory extends FuseAPIResponseFactory {
 
     @Override
-    public FuseAPIResponse create(Socket socket) {
-        return new FuseTestAPIResponse(socket);
+    public FuseAPIResponse create(FuseContext context, Socket socket) {
+        return new FuseTestAPIResponse(context, socket);
     }
 }
