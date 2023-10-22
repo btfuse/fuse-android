@@ -1,6 +1,6 @@
 
 /*
-Copyright 2023 Norman Breau
+Copyright 2023 Breautek
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -154,7 +154,7 @@ public class FuseContext {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         $webview.setWebChromeClient(new WebChromeClient());
-        $webview.addJavascriptInterface(this, "NBSNative");
+        $webview.addJavascriptInterface(this, "BTFuseNative");
         $webview.loadUrl("https://localhost/assets/index.html");
     }
 
@@ -294,13 +294,13 @@ public class FuseContext {
 
     public void execCallback(String callbackID, String payload) {
         $mainThread.post(() -> {
-            $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(\"%s\",\"%s\");", callbackID, payload.replace("\"", "\\\"")), null);
+            $webview.evaluateJavascript(String.format("window.__btfuse_doCallback(\"%s\",\"%s\");", callbackID, payload.replace("\"", "\\\"")), null);
         });
     }
 
     public void execCallback(String callbackID) {
         $mainThread.post(() -> {
-            $webview.evaluateJavascript(String.format("window.__nbsfuse_doCallback(\"%s\");", callbackID), null);
+            $webview.evaluateJavascript(String.format("window.__btfuse_doCallback(\"%s\");", callbackID), null);
         });
     }
 

@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'ca.nbsolutions.fuse.plugins'
+    namespace 'com.breautek.fuse.plugins'
     compileSdk 34
 
     aaptOptions {
