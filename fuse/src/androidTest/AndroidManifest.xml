@@ -1,7 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
     <application
-        android:name="com.breautek.fuse.test.FuseTestApplication"
         android:label="@string/app_name"
         android:theme="@style/Theme.Fuse"
         android:networkSecurityConfig="@xml/network"
