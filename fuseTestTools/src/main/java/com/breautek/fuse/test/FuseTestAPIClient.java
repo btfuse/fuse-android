@@ -17,6 +17,12 @@ limitations under the License.
 
 package com.breautek.fuse.test;
 
+import androidx.annotation.Nullable;
+
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -29,8 +35,14 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
+import com.breautek.fuse.FuseContext;
 import com.googlecode.junittoolbox.PollingWait;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class FuseTestAPIClient {
     private String $pluginID;
@@ -54,9 +66,15 @@ public class FuseTestAPIClient {
 
         private byte[] $content;
         private String $type;
+        private FuseContext $context;
 
 
         public Builder() {}
+
+        public Builder setFuseContext(FuseContext context) {
+            $context = context;
+            return this;
+        }
 
         public Builder setPluginID(String id) {
             $pluginID = id;
@@ -88,16 +106,16 @@ public class FuseTestAPIClient {
             return this;
         }
 
-        public FuseTestAPIClient build() {
-            return new FuseTestAPIClient($pluginID, $port, $apiSecret, $api, $content, $type);
+        public FuseTestAPIClient build() throws NoSuchAlgorithmException, KeyManagementException {
+            return new FuseTestAPIClient($context, $pluginID, $port, $apiSecret, $api, $content, $type);
         }
     }
 
     public static class FuseAPITestResponse {
-        private int $status;
-        private byte[] $data;
+        private final int $status;
+        private final byte[] $data;
 
-        public FuseAPITestResponse(int status, byte[] data) {
+        public FuseAPITestResponse(int status, @Nullable byte[] data) {
             $status = status;
             $data = data;
         }
@@ -115,10 +133,13 @@ public class FuseTestAPIClient {
         }
     }
 
-    private static final String API_ENDPOINT_BASE = "http://localhost";
+    private static final String API_ENDPOINT_BASE = "https://localhost";
     private static final String SECRET_HEADER = "X-Fuse-Secret";
 
-    public FuseTestAPIClient(String pluginID, int port, String secret, String endpoint, byte[] content, String type) {
+    private FuseContext $context;
+
+    public FuseTestAPIClient(FuseContext context, String pluginID, int port, String secret, String endpoint, byte[] content, String type) throws NoSuchAlgorithmException, KeyManagementException {
+        $context = context;
         $pluginID = pluginID;
         $port = port;
         $apiSecret = secret;
@@ -127,11 +148,30 @@ public class FuseTestAPIClient {
         $type = type;
         $bgThread = Executors.newSingleThreadExecutor();
 
+        TrustManager[] trustAllCertificates = new TrustManager[]{
+                new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
+
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+                }
+        };
+
         if ($httpClient == null) {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustAllCertificates, new java.security.SecureRandom());
             $httpClient = new OkHttpClient.Builder()
                     .connectTimeout(10, TimeUnit.SECONDS)
                     .readTimeout(60, TimeUnit.SECONDS)
                     .writeTimeout(60, TimeUnit.SECONDS)
+                    .sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCertificates[0])
+                    .hostnameVerifier((hostname, session) -> true) // Allow all hostnames
                     .build();
         }
     }
@@ -150,7 +190,13 @@ public class FuseTestAPIClient {
 
                 Response httpResponse = $httpClient.newCall(request).execute();
 
-                return new FuseAPITestResponse(httpResponse.code(), httpResponse.body().bytes());
+                ResponseBody body = httpResponse.body();
+                byte[] data = null;
+                if (body != null) {
+                    data = body.bytes();
+                }
+
+                return new FuseAPITestResponse(httpResponse.code(), data);
             }
         });
 

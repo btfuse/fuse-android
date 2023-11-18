@@ -1,47 +1,125 @@
+
+/*
+Copyright 2023 Breautek
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package com.breautek.fuse;
+
+import android.net.http.SslCertificate;
+
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ServerSocket;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import java.net.Socket;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.security.SecureRandom;
 
 public class FuseAPIServer {
 
     public static final String TAG = "FuseAPIServer";
 
-    private final ServerSocket $httpServer;
+    private final SSLServerSocket $httpServer;
+    private final SSLContext $sslContext;
     private final FuseContext $context;
+
+    private final FuseCertificateProvider $certProvider;
+    private final FuseCertificateProvider.FuseCertificate $certificate;
+
+    private final String UID_OID = "0.9.2342.19200300.100.1.1";
 
     String $secret;
 
-    public FuseAPIServer(FuseContext context) throws IOException {
+    public FuseAPIServer(FuseContext context) throws IOException, NoSuchAlgorithmException, CertificateException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException, KeyManagementException {
+        $sslContext = SSLContext.getInstance("TLS");
+
+        $certProvider = new FuseCertificateProvider();
+        $certProvider.install();
+        $certificate = $certProvider.generate();
+
+        KeyStore keystore = KeyStore.getInstance("PKCS12");
+        keystore.load(null, null);
+        keystore.setKeyEntry("fuse-api-certificate", $certificate.keypair.getPrivate(), null, new X509Certificate[]{$certificate.certificate});
+
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keystore, null);
+
+        TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmFactory.init(keystore);
+
+        $sslContext.init(keyManagerFactory.getKeyManagers(), tmFactory.getTrustManagers(), null);
+
         $context = context;
         $secret = $generateSecret();
-        $httpServer = new ServerSocket(0);
+
+        SSLServerSocketFactory sslServerSocketFactory = $sslContext.getServerSocketFactory();
+
+        $httpServer = (SSLServerSocket) sslServerSocketFactory.createServerSocket(0);
+        $httpServer.setEnabledCipherSuites($httpServer.getSupportedCipherSuites());
+
         FuseLogger logger = $context.getLogger();
 
         Thread serverThread = new Thread(() -> {
             try {
                 while (true) {
                     Socket client = $httpServer.accept();
+
                     new Thread(() -> {
                         try {
                             $handleConnection(client);
-                        } catch (IOException e) {
+                        }
+                        catch (SSLException e) {
+                            logger.error(TAG, "Client SSL Error: ", e);
+                            try {
+                                client.close();
+                            }
+                            catch (IOException ex) {
+                                logger.error(TAG, "Client SSL Error: ", e);
+                            }
+                        }
+                        catch (IOException e) {
                             logger.error(TAG, "Client Socket Error: ", e);
                             try {
                                 client.close();
-                            } catch (IOException ex) {
+                            }
+                            catch (IOException ex) {
                                 logger.error(TAG, "Client Socket Error: ", e);
                             }
                         }
                     }).start();
                 }
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 logger.error(TAG, "Socket Error:", e);
             }
         });
@@ -49,25 +127,16 @@ public class FuseAPIServer {
         serverThread.start();
     }
 
+    public SSLContext getSSLContext() {
+        return $sslContext;
+    }
+
     public String getSecretKey() {
         return $secret;
     }
 
     private String $generateSecret() {
-        SecureRandom secureRandom = new SecureRandom();
-
-        // Generate a random byte array of the desired length
-        int secretLength = 32; // Length in bytes
-        byte[] secretBytes = new byte[secretLength];
-        secureRandom.nextBytes(secretBytes);
-
-        // Convert the byte array to a hexadecimal string
-        StringBuilder stringBuilder = new StringBuilder();
-        for (byte b : secretBytes) {
-            stringBuilder.append(String.format("%02x", b));
-        }
-
-        return stringBuilder.toString();
+        return FuseSecretGenerator.generate();
     }
 
     private static class Header {
@@ -214,5 +283,18 @@ public class FuseAPIServer {
 
     public int getPort() {
         return $httpServer.getLocalPort();
+    }
+
+    public boolean verifyCertificate(SslCertificate certificate) {
+        X500Name dname = new X500Name(certificate.getIssuedTo().getDName());
+        RDN[] rdns = dname.getRDNs(new ASN1ObjectIdentifier(UID_OID));
+        if (rdns.length == 0) {
+            return false;
+        }
+
+        RDN uidAttr = rdns[0];
+        String uid = uidAttr.getFirst().getValue().toString();
+
+        return uid.equals(this.$certificate.signature);
     }
 }

@@ -28,6 +28,9 @@ import org.junit.Rule;
 
 import static org.junit.Assert.*;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+
 @RunWith(AndroidJUnit4.class)
 public class FuseAPITest {
 
@@ -62,7 +65,10 @@ public class FuseAPITest {
             int port = activity.getFuseContext().getAPIPort();
             String secret = activity.getFuseContext().getAPISecret();
 
-            FuseTestAPIClient client = new FuseTestAPIClient.Builder()
+            FuseTestAPIClient client;
+            try {
+                client = new FuseTestAPIClient.Builder()
+                    .setFuseContext(activity.getFuseContext())
                     .setAPIPort(port)
                     .setAPISecret(secret)
                     .setPluginID("echo")
@@ -70,6 +76,10 @@ public class FuseAPITest {
                     .setEndpoint("/echo")
                     .setContent("Hello Test!")
                     .build();
+            }
+            catch (NoSuchAlgorithmException | KeyManagementException e) {
+                throw new RuntimeException(e);
+            }
 
             FuseTestAPIClient.FuseAPITestResponse response = client.execute();
             assertEquals(200, response.getStatus());
@@ -83,14 +93,21 @@ public class FuseAPITest {
             int port = activity.getFuseContext().getAPIPort();
             String secret = activity.getFuseContext().getAPISecret();
 
-            FuseTestAPIClient client = new FuseTestAPIClient.Builder()
-                    .setAPIPort(port)
-                    .setAPISecret(secret)
-                    .setPluginID("echo")
-                    .setType("text/plain")
-                    .setEndpoint("/threadtest")
-                    .setContent("Hello Test!")
-                    .build();
+            FuseTestAPIClient client;
+            try {
+                client = new FuseTestAPIClient.Builder()
+                        .setFuseContext(activity.getFuseContext())
+                        .setAPIPort(port)
+                        .setAPISecret(secret)
+                        .setPluginID("echo")
+                        .setType("text/plain")
+                        .setEndpoint("/threadtest")
+                        .setContent("Hello Test!")
+                        .build();
+            }
+            catch (NoSuchAlgorithmException | KeyManagementException e) {
+                throw new RuntimeException(e);
+            }
 
             FuseTestAPIClient.FuseAPITestResponse response = client.execute();
             assertEquals(200, response.getStatus());

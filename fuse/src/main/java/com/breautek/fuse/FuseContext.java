@@ -23,11 +23,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -37,12 +39,22 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Map;
 import java.util.HashMap;
 
 import com.breautek.fuse.plugins.FuseRuntime;
+
+import org.bouncycastle.operator.OperatorCreationException;
+
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.net.ssl.SSLContext;
 
 public class FuseContext {
     private static final String TAG = "FuseContext";
@@ -81,13 +93,22 @@ public class FuseContext {
 
         try {
             $apiServer = new FuseAPIServer(this);
-        } catch (IOException e) {
+        } catch (
+            IOException | UnrecoverableKeyException | CertificateException |
+            NoSuchAlgorithmException | KeyStoreException | OperatorCreationException |
+            KeyManagementException
+            e
+        ) {
             throw new RuntimeException(e);
         }
 
         Log.i(TAG, "API Server Port: " + $apiServer.getPort());
 
         registerPlugin(new FuseRuntime(this));
+    }
+
+    public SSLContext getSSLContext() {
+        return $apiServer.getSSLContext();
     }
 
     public void setResponseFactory(FuseAPIResponseFactory factory) {
@@ -143,8 +164,24 @@ public class FuseContext {
         $webview.setWebViewClient(new WebViewClientCompat() {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-            $logger.info(TAG, "DOM Request: " + request.getUrl());
-            return assetLoader.shouldInterceptRequest(request.getUrl());
+                $logger.info(TAG, "DOM Request: " + request.getUrl());
+                return assetLoader.shouldInterceptRequest(request.getUrl());
+            }
+
+            @Override
+            public void onReceivedSslError(WebView webview, SslErrorHandler handler, SslError error) {
+                if (error.getPrimaryError() == SslError.SSL_UNTRUSTED) {
+                    // Test the certificate for our own generated certificate and if so, let it pass,
+                    if ($apiServer.verifyCertificate(error.getCertificate())) {
+                        handler.proceed();
+                    }
+                    else {
+                        handler.cancel();
+                    }
+                }
+                else {
+                    handler.cancel();
+                }
             }
         });
 

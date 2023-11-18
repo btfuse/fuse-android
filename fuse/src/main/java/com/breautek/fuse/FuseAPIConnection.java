@@ -1,6 +1,7 @@
 
+
 /*
-Copyright 2023 Breautek 
+Copyright 2023 Breautek
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,20 +16,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-plugins {
-    id 'com.android.application' version '8.2.0-rc03' apply false
-    id 'com.android.library' version '8.2.0-rc03' apply false
-}
 
-allprojects {
-    subprojects {
-        afterEvaluate {
-            tasks.withType(JavaCompile).tap {
-                configureEach {
-                    options.compilerArgs += "-Xlint:deprecation"
-                }
-            }
-        }
+package com.breautek.fuse;
+
+import java.net.Socket;
+
+import javax.net.ssl.SSLEngine;
+
+public class FuseAPIConnection {
+    SSLEngine $engine;
+    Socket $socket;
+
+    public FuseAPIConnection(SSLEngine engine, Socket socket) {
+
     }
 }
