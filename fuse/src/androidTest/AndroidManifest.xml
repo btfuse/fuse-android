@@ -3,7 +3,6 @@
     <application
         android:label="@string/app_name"
         android:theme="@style/Theme.Fuse"
-        android:networkSecurityConfig="@xml/network"
     >
         <activity
             android:name="com.breautek.fuse.test.TestFuseActivity"
