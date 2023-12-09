@@ -15,26 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package com.breautek.fuse.test;
+package com.breautek.fuse.testtools;
 
 import java.net.Socket;
 
 import com.breautek.fuse.FuseAPIResponse;
+import com.breautek.fuse.FuseAPIResponseFactory;
 import com.breautek.fuse.FuseContext;
 
-import static org.junit.Assert.*;
-
-import android.os.Looper;
-
-public class FuseTestAPIResponse extends FuseAPIResponse {
-
-    public FuseTestAPIResponse(FuseContext context, Socket client) {
-        super(context, client);
-    }
+public class FuseTestAPIResponseFactory extends FuseAPIResponseFactory {
 
     @Override
-    protected void __writeImpl(byte[] data, boolean flush) {
-        assertSame("Should be on network thread", Looper.myLooper(), getNetworkThreadHandler().getLooper());
-        super.__writeImpl(data, flush);
+    public FuseAPIResponse create(FuseContext context, Socket socket) {
+        return new FuseTestAPIResponse(context, socket);
     }
 }

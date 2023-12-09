@@ -1,4 +1,4 @@
-package com.breautek.fuse.test;
+package com.breautek.fuse.testtools;
 
 import android.app.Application;
 
