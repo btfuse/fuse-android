@@ -32,6 +32,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManagerFactory;
 import java.net.Socket;
 import java.security.KeyManagementException;
@@ -74,10 +75,7 @@ public class FuseAPIServer {
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         keyManagerFactory.init(keystore, null);
 
-        TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmFactory.init(keystore);
-
-        $sslContext.init(keyManagerFactory.getKeyManagers(), tmFactory.getTrustManagers(), null);
+        $sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
 
         $context = context;
         $secret = $generateSecret();
@@ -85,7 +83,10 @@ public class FuseAPIServer {
         SSLServerSocketFactory sslServerSocketFactory = $sslContext.getServerSocketFactory();
 
         $httpServer = (SSLServerSocket) sslServerSocketFactory.createServerSocket(0);
-        $httpServer.setEnabledCipherSuites($httpServer.getSupportedCipherSuites());
+        $httpServer.setEnabledProtocols(new String[]{
+            "TLSv1.2",
+            "TLSv1.3"
+        });
 
         FuseLogger logger = $context.getLogger();
 
@@ -93,18 +94,37 @@ public class FuseAPIServer {
             try {
                 while (true) {
                     Socket client = $httpServer.accept();
+                    SSLSocket secureSocket = (SSLSocket)client;
 
                     new Thread(() -> {
                         try {
+                            secureSocket.startHandshake();
                             $handleConnection(client);
                         }
                         catch (SSLException e) {
-                            logger.error(TAG, "Client SSL Error: ", e);
-                            try {
-                                client.close();
+                            String message = e.getMessage();
+
+                            // If the message is for an unknown CA, then it's expected so don't log
+                            // it. Note that the chromium package will still log out handshake
+                            // failures. The error is produced and sent to the Webview's
+                            // onReceivedSslError hook in which case if the WebViewClient proceeds
+                            // the webview will automatically retry the request.
+                            if (message != null && message.contains("SSLV3_ALERT_CERTIFICATE_UNKNOWN")) {
+                                try {
+                                    client.close();
+                                }
+                                catch (IOException ex) {
+                                    logger.error(TAG, "Client IO Error: ", e);
+                                }
                             }
-                            catch (IOException ex) {
+                            else {
                                 logger.error(TAG, "Client SSL Error: ", e);
+                                try {
+                                    client.close();
+                                }
+                                catch (IOException ex) {
+                                    logger.error(TAG, "Client IO Error: ", e);
+                                }
                             }
                         }
                         catch (IOException e) {
@@ -144,7 +164,7 @@ public class FuseAPIServer {
         private final String $version;
         private final String $path;
 
-        private Map<String, String> $headers;
+        private final Map<String, String> $headers;
 
         public Header(String method, String version, String path) {
             $method = method;

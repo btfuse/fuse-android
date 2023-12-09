@@ -168,6 +168,7 @@ public class FuseContext {
                 return assetLoader.shouldInterceptRequest(request.getUrl());
             }
 
+            @SuppressLint("WebViewClientOnReceivedSslError")
             @Override
             public void onReceivedSslError(WebView webview, SslErrorHandler handler, SslError error) {
                 if (error.getPrimaryError() == SslError.SSL_UNTRUSTED) {
