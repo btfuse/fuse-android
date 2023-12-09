@@ -18,12 +18,15 @@ limitations under the License.
 package com.breautek.fuse;
 
 import android.net.http.SslCertificate;
+import android.os.Build;
+import android.os.Bundle;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.operator.OperatorCreationException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -35,13 +38,21 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManagerFactory;
 import java.net.Socket;
+import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
+import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.sql.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -83,10 +94,18 @@ public class FuseAPIServer {
         SSLServerSocketFactory sslServerSocketFactory = $sslContext.getServerSocketFactory();
 
         $httpServer = (SSLServerSocket) sslServerSocketFactory.createServerSocket(0);
-        $httpServer.setEnabledProtocols(new String[]{
-            "TLSv1.2",
-            "TLSv1.3"
-        });
+
+        String[] supportedProtocols = $httpServer.getSupportedProtocols();
+        ArrayList<String> enabledProtocols = new ArrayList<>();
+        for (String protocol : supportedProtocols) {
+            if (
+                protocol.equals("TLSv1.2") ||
+                protocol.equals("TLSv.1.3")
+            ) {
+                enabledProtocols.add(protocol);
+            }
+        }
+        $httpServer.setEnabledProtocols(enabledProtocols.toArray(new String[0]));
 
         FuseLogger logger = $context.getLogger();
 
@@ -201,8 +220,10 @@ public class FuseAPIServer {
         // First need to read the first line:
         StringBuilder sb = new StringBuilder();
         int byteRead = -1;
+        long totalBytesRead = 0;
         while ((byteRead = input.read()) != -1) {
             c = (byte)byteRead;
+            totalBytesRead++;
 
             if (p == '\r' && c == '\n') {
                 break;
@@ -213,6 +234,10 @@ public class FuseAPIServer {
             }
 
             p = c;
+        }
+
+        if (totalBytesRead == 0) {
+            return null;
         }
 
         String initialLine = sb.toString();
@@ -279,6 +304,11 @@ public class FuseAPIServer {
     private void $handleConnection(Socket client) throws IOException {
         Header header = $parseHeader(client.getInputStream());
 
+        if (header == null) {
+            client.close();
+            return;
+        }
+
         $context.getLogger().info(TAG, String.format(Locale.US, "API Server Request (%d): (%s) (%s)", client.hashCode(), header.getMethod(), header.getPath()));
 
         if (header.getMethod().equals("OPTIONS")) {
@@ -306,6 +336,48 @@ public class FuseAPIServer {
     }
 
     public boolean verifyCertificate(SslCertificate certificate) {
+
+        X509Certificate x509 = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            x509 = certificate.getX509Certificate();
+        }
+        else {
+            Bundle bundledState = SslCertificate.saveState(certificate);
+            byte[] data = bundledState.getByteArray("x509-certificate");
+
+            if (data == null) {
+                return false;
+            }
+
+            try {
+                CertificateFactory factory = CertificateFactory.getInstance("X.509");
+                x509 = (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(data));
+            }
+            catch (CertificateException ex) {
+                return false;
+            }
+        }
+
+        if (x509 == null) {
+            return false;
+        }
+
+        KeyPair kp = $certificate.keypair;
+        PublicKey publicKey = kp.getPublic();
+
+        try {
+            x509.verify(publicKey);
+        } catch (
+            CertificateException        |
+            InvalidKeyException         |
+            NoSuchAlgorithmException    |
+            SignatureException          |
+            NoSuchProviderException     e
+        ) {
+            e.printStackTrace();
+            return false;
+        }
+
         X500Name dname = new X500Name(certificate.getIssuedTo().getDName());
         RDN[] rdns = dname.getRDNs(new ASN1ObjectIdentifier(UID_OID));
         if (rdns.length == 0) {
