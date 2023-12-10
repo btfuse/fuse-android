@@ -8,31 +8,27 @@ on:
     branches: [ "main" ]
 
 env:
-  ACTION_CHECKOUT_VERSION: v4
-  ACTION_SETUP_JAVA_VERSION: v3
-  ACTION_EMULATOR_RUNNER_VERSION: v2
   JAVA_VERSION: 17
   JAVA_DISTRIBUTION: temurin
-  
 
 jobs:
   API-24:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@$ACTION_CHECKOUT_VERSION
-    - name: set up JDK ${{env.java_version}}
-      uses: actions/setup-java@$ACTION_SETUP_JAVA_VERSION
+      uses: actions/checkout@v4
+    - name: set up JDK
+      uses: actions/setup-java@v3
       with:
-        java-version: $JAVA_VERSION
-        distribution: $JAVA_DISTRIBUTION
+        java-version: ${{env.JAVA_VERSION}}
+        distribution: ${{env.JAVA_DISTRIBUTION}}
         cache: gradle
     - name: Install Gradle Wrapper
       run: gradle wrapper
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: run tests
-      uses: reactivecircus/android-emulator-runner@$ACTION_EMULATOR_RUNNER_VERSION
+      uses: reactivecircus/android-emulator-runner@v2
       with:
         api-level: 24
         arch: x86_64
