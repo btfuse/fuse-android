@@ -2,7 +2,9 @@
     "config": {
         "actionCheckoutVersion": "v4",
         "actionSetupJavaVersion": "v3",
+        "actionGradleBuildActionVersion": "v2",
         "actionAndroidEmulatorRunnerVersion": "v2",
+        "actionCacheVersion": "v3",
         "javaVersion": 17,
         "javaDistribution": "temurin"
     },
