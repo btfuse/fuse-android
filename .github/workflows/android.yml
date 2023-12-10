@@ -10,6 +10,7 @@ jobs:
   api24:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/workflows/instrumented-test.yml
         with:
           api_level: 24
