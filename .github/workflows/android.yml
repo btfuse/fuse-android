@@ -7,57 +7,31 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  api24:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-      - name: set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: ./.github/workflows/instrumented-test.yml
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
-
-      - name: Install Gradle Wrapper
-        run: gradle wrapper
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-      - name: Build with Gradle
-        run: ./gradlew :fuse:build
-
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        api-level: [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34]
-        target: [google_apis]
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
-      - name: Install Gradle Wrapper
-        run: gradle wrapper
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-      # - name: AVD cache
-      #   uses: actions/cache@v3
-      #   id: avd-cache
-      #   with:
-      #     path: |
-      #       ~/.android/avd/*
-      #       ~/.android/adb*
-      #     key: avd-${{ matrix.api-level }}
-      - name: run tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.api-level }}
-          target: ${{ matrix.target }}
+          api_level: 24
           arch: x86_64
-          profile: Nexus 6
-          script: ./gradlew :fuse:connectedCheck
+          arget: google_apis
+
+      
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v4
+#     - name: set up JDK 17
+#       uses: actions/setup-java@v3
+#       with:
+#         java-version: '17'
+#         distribution: 'temurin'
+#         cache: gradle
+#     - name: Install Gradle Wrapper
+#       run: gradle wrapper
+#     - name: Grant execute permission for gradlew
+#       run: chmod +x gradlew
+#     - name: Build with Gradle
+#       run: ./gradlew :fuse:build
+  
