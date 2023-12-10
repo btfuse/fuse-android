@@ -67,7 +67,7 @@
             "id": "API-33",
             "api": 33,
             "arch": "x86_64",
-            "target": "play"
+            "target": "google_apis_playstore"
         },
         {
             "id": "API-34",

@@ -494,7 +494,7 @@ jobs:
     #  with:
     #    api-level: 33
     #    arch: x86_64
-    #    target: play
+    #    target: google_apis_playstore
     #    force-avd-creation: false
     #    emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
     #    disable-animations: false
@@ -507,7 +507,7 @@ jobs:
         disable-animations: true
         api-level: 33
         arch: x86_64
-        target: play
+        target: google_apis_playstore
         script: ./gradlew :fuse:connectedCheck
 
   API-34:
