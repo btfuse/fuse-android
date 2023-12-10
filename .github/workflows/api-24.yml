@@ -28,6 +28,5 @@ jobs:
         api-level: 24
         arch: x86_64
         target: google_apis
-        profile: 'Pixel 4'
         script: ./gradlew :fuse:connectedCheck
   
