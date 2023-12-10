@@ -1,0 +1,17 @@
+{
+    "config": {
+        "actionCheckoutVersion": "v4",
+        "actionSetupJavaVersion": "v3",
+        "actionAndroidEmulatorRunnerVersion": "v2",
+        "javaVersion": 17,
+        "javaDistribution": "temurin"
+    },
+    "jobs": [
+        {
+            "id": "API-24",
+            "api": 24,
+            "arch": "x86_64",
+            "target": "google_apis"
+        }
+    ]
+}
