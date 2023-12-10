@@ -14,6 +14,12 @@
             "api": 24,
             "arch": "x86_64",
             "target": "google_apis"
+        },
+        {
+            "id": "API-25",
+            "api": 25,
+            "arch": "x86_64",
+            "target": "google_apis"
         }
     ]
 }
