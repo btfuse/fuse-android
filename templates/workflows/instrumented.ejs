@@ -49,6 +49,9 @@ jobs:
     - name: run tests
       uses: reactivecircus/android-emulator-runner@<%= config.actionAndroidEmulatorRunnerVersion %>
       with:
+        force-avd-creation: false
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
         api-level: <%= job.api %>
         arch: <%= job.arch %>
         target: <%= job.target %>
