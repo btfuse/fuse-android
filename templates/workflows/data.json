@@ -20,6 +20,60 @@
             "api": 25,
             "arch": "x86_64",
             "target": "google_apis"
+        },
+        {
+            "id": "API-26",
+            "api": 26,
+            "arch": "x86_64",
+            "target": "google_apis"
+        },
+        {
+            "id": "API-27",
+            "api": 27,
+            "arch": "x86",
+            "target": "google_apis"
+        },
+        {
+            "id": "API-28",
+            "api": 28,
+            "arch": "x86_64",
+            "target": "google_apis"
+        },
+        {
+            "id": "API-29",
+            "api": 29,
+            "arch": "x86_64",
+            "target": "google_apis"
+        },
+        {
+            "id": "API-30",
+            "api": 30,
+            "arch": "x86_64",
+            "target": "google_apis"
+        },
+        {
+            "id": "API-31",
+            "api": 31,
+            "arch": "x86_64",
+            "target": "google_apis"
+        },
+        {
+            "id": "API-32",
+            "api": 32,
+            "arch": "x86_64",
+            "target": "google_apis"
+        },
+        {
+            "id": "API-33",
+            "api": 33,
+            "arch": "x86_64",
+            "target": "play"
+        },
+        {
+            "id": "API-34",
+            "api": 34,
+            "arch": "x86_64",
+            "target": "google_apis"
         }
     ]
 }
