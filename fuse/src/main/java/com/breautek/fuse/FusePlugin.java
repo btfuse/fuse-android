@@ -33,7 +33,7 @@ public abstract class FusePlugin {
 
     private static final String TAG = "FusePlugin";
 
-    protected abstract static class APIHandler<TPlugin extends FusePlugin> {
+    public abstract static class APIHandler<TPlugin extends FusePlugin> {
         public final TPlugin plugin;
         public APIHandler(TPlugin plugin) {
             this.plugin = plugin;
