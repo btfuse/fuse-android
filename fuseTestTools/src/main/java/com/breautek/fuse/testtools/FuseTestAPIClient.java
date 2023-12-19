@@ -101,6 +101,11 @@ public class FuseTestAPIClient {
             return this;
         }
 
+        public Builder setContent(byte[] content) {
+            $content = content;
+            return this;
+        }
+
         public Builder setType(String type) {
             $type = type;
             return this;
