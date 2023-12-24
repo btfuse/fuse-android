@@ -32,13 +32,13 @@ android {
     }
 
     defaultConfig {
-        minSdk 24
+        minSdk 26
 
         // Required for instrumented tests
         targetSdk 34
 
         aarMetadata {
-            minCompileSdk 24
+            minCompileSdk 26
         }
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
