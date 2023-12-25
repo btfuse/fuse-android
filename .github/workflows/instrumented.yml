@@ -18,5 +18,19 @@ jobs:
       run: /opt/bin/gradle wrapper
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: Wait for Android 28
+      run: adb -s emulator-5562 wait-for-device
+    - name: Wait for Android 29
+      run: adb -s emulator-5564 wait-for-device
+    - name: Wait for Android 30
+      run: adb -s emulator-5566 wait-for-device
+    - name: Wait for Android 31
+      run: adb -s emulator-5568 wait-for-device
+    - name: Wait for Android 32
+      run: adb -s emulator-5570 wait-for-device
+    - name: Wait for Android 33
+      run: adb -s emulator-5572 wait-for-device
+    - name: Wait for Android 34
+      run: adb -s emulator-5574 wait-for-device
     - name: Run Tests
       run: ./gradlew :fuse:cAT
