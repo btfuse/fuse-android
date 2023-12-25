@@ -16,13 +16,6 @@
 source ../build-tools/DirectoryTools.sh
 source ../build-tools/assertions.sh
 
-# target="$1"
-
-# if [ -z "$target" ]; then
-#     echo "Target is required and must be either \"ios\" or \"android\"."
-#     exit 1
-# fi
-
 assetDir="$(pwd)/$1"
 
 if [ -z "$assetDir" ]; then
@@ -50,14 +43,8 @@ spushd ../../fuse-test-app
     node scripts/generateTestFile.js 
     assertLastCall
 
-    # if [ "$target" == "android" ]; then
     mkdir -p $assetDir
     cp ./largeFile.txt "$assetDir"
     ASSET_DIR="$assetDir" npx webpack --mode development --config webpack.config.android.js
     assertLastCall
-    # elif [ "$target" == "ios" ]; then
-    #     cp ./largeFile.txt "$assetDir"
-    #     ASSET_DIR="$assetDir" npx webpack --mode development --config webpack.config.ios.js
-    #     assertLastCall
-    # fi
 spopd
