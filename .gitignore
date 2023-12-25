@@ -5,3 +5,7 @@ gradlew.bat
 local.properties
 .idea/deploymentTargetDropDown.xml
 node_modules
+/testapp/src/main/assets/index.html
+/testapp/src/main/assets/*.js
+/testapp/src/main/assets/*.map
+/testapp/src/main/assets/largeFile.txt

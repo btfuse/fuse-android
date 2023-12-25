@@ -1,3 +1,4 @@
+
 /*
 Copyright 2023 Breautek 
 
@@ -14,26 +15,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
+package com.breautek.fuse.testapp;
+
+import android.os.Bundle;
+
+import com.breautek.fuse.FuseActivity;
+import com.breautek.fuse.FuseContext;
+
+import com.breautek.fuse.plugins.EchoPlugin;
+
+public class MainActivity extends FuseActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        FuseContext fuseContext = getFuseContext();
+        fuseContext.registerPlugin(new EchoPlugin(fuseContext));
     }
 }
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-rootProject.name = "Fuse"
-include ':fuse'
-
-include ':EchoPlugin'
-project(':EchoPlugin').projectDir = new File('./testplugins/EchoPlugin')
-
-include ':testapp'
-project(':testapp').projectDir = new File('./testapp')
-include ':fuseTestTools'
