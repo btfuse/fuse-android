@@ -22,7 +22,8 @@ import android.os.Bundle;
 import com.breautek.fuse.FuseActivity;
 import com.breautek.fuse.FuseContext;
 
-import com.breautek.fuse.plugins.EchoPlugin;
+import com.breautek.fuse.plugins.echo.EchoPlugin;
+import com.breautek.fuse.plugins.nativeview.NativeViewPlugin;
 
 public class MainActivity extends FuseActivity {
 
@@ -31,5 +32,6 @@ public class MainActivity extends FuseActivity {
         super.onCreate(savedInstanceState);
         FuseContext fuseContext = getFuseContext();
         fuseContext.registerPlugin(new EchoPlugin(fuseContext));
+        fuseContext.registerPlugin(new NativeViewPlugin(fuseContext));
     }
 }

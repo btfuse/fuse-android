@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'com.breautek.fuse.plugins.echo'
+    namespace 'com.breautek.fuse.plugins.nativeview'
     compileSdk 34
 
     aaptOptions {
@@ -33,6 +33,7 @@ android {
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.10.0'
+    implementation 'androidx.webkit:webkit:1.8.0'
     implementation project(':fuse')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

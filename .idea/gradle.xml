@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$/fuseTestTools" />
             <option value="$PROJECT_DIR$/testapp" />
             <option value="$PROJECT_DIR$/testplugins/EchoPlugin" />
+            <option value="$PROJECT_DIR$/testplugins/NativeViewPOC" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />
