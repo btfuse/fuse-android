@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
@@ -35,6 +36,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
@@ -81,8 +84,13 @@ public class FuseContext {
 
     private FuseLogger $logger;
 
+    private ViewGroup $container;
+
+    private FuseScreenUtils $screenUtils;
+
     public FuseContext(AppCompatActivity context) {
         $context = context;
+        $screenUtils = new FuseScreenUtils(context);
         $logger = new FuseLogger(this);
         $responseFactory = new FuseAPIResponseFactory();
         $mainThread = new Handler(Looper.getMainLooper());
@@ -105,6 +113,29 @@ public class FuseContext {
         Log.i(TAG, "API Server Port: " + $apiServer.getPort());
 
         registerPlugin(new FuseRuntime(this));
+    }
+
+    public FuseScreenUtils getScreenUtils() {
+        return $screenUtils;
+    }
+
+    public String getHost() {
+        return HOST;
+    }
+
+    protected ViewGroup _createLayout(AppCompatActivity context) {
+        FrameLayout layout = new FrameLayout(context);
+        layout.setLayoutParams(
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                )
+        );
+        return layout;
+    }
+
+    public ViewGroup getLayout() {
+        return $container;
     }
 
     public SSLContext getSSLContext() {
@@ -153,12 +184,15 @@ public class FuseContext {
 
         $logger.info(TAG, "Fuse Version: " + BuildConfig.FUSE_VERSION);
 
+        $container = _createLayout($context);
         $webview = new WebView($context);
+
+        $container.addView($webview);
 
         final WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler($context))
                 .setHttpAllowed(false)
-                .setDomain(HOST)
+                .setDomain(getHost())
                 .build();
 
         $webview.setWebViewClient(new WebViewClientCompat() {

@@ -24,6 +24,10 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
+
 import com.breautek.fuse.plugins.IFusePluginRegistrar;
 
 /**
@@ -79,7 +83,7 @@ public class FuseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         $fuseContext.onCreate(savedInstanceState);
-        setContentView($fuseContext.getWebview());
+        setContentView($fuseContext.getLayout());
     }
 
     @Override
