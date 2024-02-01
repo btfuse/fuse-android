@@ -20,7 +20,7 @@ package com.breautek.fuse.testtools;
 import android.os.Bundle;
 
 import com.breautek.fuse.FuseContext;
-import com.breautek.fuse.plugins.EchoPlugin;
+import com.breautek.fuse.plugins.echo.EchoPlugin;
 
 public class TestFuseActivity extends FuseTestActivity {
     @Override
