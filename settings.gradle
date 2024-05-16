@@ -34,9 +34,6 @@ include ':fuse'
 include ':EchoPlugin'
 project(':EchoPlugin').projectDir = new File('./testplugins/EchoPlugin')
 
-include ':NativeView'
-project(':NativeView').projectDir = new File('./testplugins/NativeViewPOC')
-
 include ':testapp'
 project(':testapp').projectDir = new File('./testapp')
 include ':fuseTestTools'
