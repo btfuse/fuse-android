@@ -58,7 +58,6 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation project(path: ':fuse')
     implementation project(path: ':EchoPlugin')
-//    implementation project(':NativeView')
 }
 
 tasks.register('prepareJS', Exec) {
