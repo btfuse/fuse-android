@@ -1,3 +1,4 @@
+
 /*
 Copyright 2023 Breautek 
 
@@ -14,26 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    id("com.android.application") version "8.2.1" apply false
+    id("com.android.library") version "8.2.1" apply false
+}
+
+allprojects {
+    subprojects {
+        afterEvaluate {
+            tasks.withType(JavaCompile::class.java).configureEach {
+                options.compilerArgs.add("-Xlint:deprecation")
+            }
+        }
     }
 }
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-rootProject.name = "Fuse"
-include ':fuse'
-
-include ':EchoPlugin'
-project(':EchoPlugin').projectDir = new File('./testplugins/EchoPlugin')
-
-include ':testapp'
-project(':testapp').projectDir = new File('./testapp')
-include ':fuseTestTools'
