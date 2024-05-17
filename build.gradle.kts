@@ -21,6 +21,11 @@ plugins {
     id("com.android.library") version "8.2.1" apply false
 }
 
+tasks.wrapper {
+    distributionType = Wrapper.DistributionType.BIN
+    gradleVersion = "8.7"
+}
+
 allprojects {
     subprojects {
         afterEvaluate {
