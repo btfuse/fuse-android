@@ -175,27 +175,8 @@ android.libraryVariants.configureEach {
 
             options {
                 encoding("UTF-8")
+                header = "<div style=\"display:flex;justify-content:center;height:100%;width:100%;align-items:center;\"><a href=\"/\">Main Documentation</a></div>"
             }
         }
     }
 }
-
-//tasks.register<Javadoc>("generateJavadoc") {
-//    source = android.sourceSets["main"].java.getSourceFiles()
-//    classpath += files(
-//        android.bootClasspath.joinToString(File.pathSeparator),
-//            configurations["releaseCompileClasspath"],
-//            configurations["releaseRuntimeClasspath"]
-//    )
-//
-//    options {
-//        encoding = "UTF-8"
-//        charset("UTF-8")
-////        source = files(android.sourceSets["main"].java.srcDirs).joinToString(File.pathSeparator)
-//        classpath = files(
-//                android.bootClasspath.joinToString(File.pathSeparator),
-//                configurations["releaseCompileClasspath"],
-//                configurations["releaseRuntimeClasspath"]
-//        ).toList()
-//    }
-//}
