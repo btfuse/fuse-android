@@ -1,6 +1,6 @@
 
 /*
-Copyright 2023 Breautek
+Copyright 2023-2024 Breautek
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import java.security.cert.CertificateException;
 import java.util.Map;
 import java.util.HashMap;
 
+import com.breautek.fuse.plugins.FuseInstanceStore;
 import com.breautek.fuse.plugins.FuseRuntime;
 
 import org.bouncycastle.operator.OperatorCreationException;
@@ -113,6 +114,7 @@ public class FuseContext {
         Log.i(TAG, "API Server Port: " + $apiServer.getPort());
 
         registerPlugin(new FuseRuntime(this));
+        registerPlugin(new FuseInstanceStore(this));
     }
 
     public FuseScreenUtils getScreenUtils() {
@@ -256,9 +258,14 @@ public class FuseContext {
 
     public void onSaveInstanceState(@NonNull Bundle outState) {
         $pluginMapLock.readLock().lock();
+        Bundle pluginStates = new Bundle();
         for (FusePlugin plugin : $pluginMap.values()) {
-            plugin.onSaveInstanceState(outState);
+            String id = plugin.getID();
+            Bundle pluginBundle = new Bundle();
+            plugin.onSaveInstanceState(pluginBundle);
+            pluginStates.putBundle(id, pluginBundle);
         }
+        outState.putBundle("pluginStates", pluginStates);
         $pluginMapLock.readLock().unlock();
     }
 
