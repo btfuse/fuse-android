@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.ManagedVirtualDevice
+import com.android.build.gradle.internal.scope.ProjectInfo.Companion.getBaseName
 
 /*
 Copyright 2023 Breautek 
@@ -163,3 +164,38 @@ publishing {
         }
     }
 }
+
+android.libraryVariants.configureEach {
+    if (this.name.equals("release")) {
+        val variant  = this
+        tasks.register<Javadoc>("generateJavadoc") {
+            description = "Generates a Javadoc"
+            source = variant.javaCompileProvider.get().source
+            classpath = files(variant.javaCompileProvider.get().classpath.files)
+
+            options {
+                encoding("UTF-8")
+            }
+        }
+    }
+}
+
+//tasks.register<Javadoc>("generateJavadoc") {
+//    source = android.sourceSets["main"].java.getSourceFiles()
+//    classpath += files(
+//        android.bootClasspath.joinToString(File.pathSeparator),
+//            configurations["releaseCompileClasspath"],
+//            configurations["releaseRuntimeClasspath"]
+//    )
+//
+//    options {
+//        encoding = "UTF-8"
+//        charset("UTF-8")
+////        source = files(android.sourceSets["main"].java.srcDirs).joinToString(File.pathSeparator)
+//        classpath = files(
+//                android.bootClasspath.joinToString(File.pathSeparator),
+//                configurations["releaseCompileClasspath"],
+//                configurations["releaseRuntimeClasspath"]
+//        ).toList()
+//    }
+//}
